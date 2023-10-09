@@ -1,6 +1,6 @@
 import { NextFunction, Response, Request } from "express";
 import { AuthService } from "../services/auth.service";
-import { UserTypes } from "../interface";
+import { UserTypes } from "../custom-type";
 import HttpResponse from "../HttpResponse";
 import HttpException from "../HttpException";
 import {
@@ -19,12 +19,11 @@ export const register = async (
   next: NextFunction
 ) => {
   try {
-    const { email, password, name } = <RegisterDto["body"]>req.body;
+    const body = <RegisterDto["body"]>req.body;
     const { data, message, statusCode, isSuccess } = await authService.register(
       {
-        email,
-        password,
-        name,
+        ...body,
+        dateOfBirth: new Date(body.dateOfBirth),
         type: UserTypes.USER,
       }
     );

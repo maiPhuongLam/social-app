@@ -1,4 +1,5 @@
-import { TypeOf, number, object, string, z } from "zod";
+import { TypeOf, date, number, object, string, z } from "zod";
+import { Gender } from "../custom-type";
 
 const loginSchema = object({
   body: object({
@@ -22,6 +23,13 @@ const registerSchema = object({
     name: string({
       required_error: "Name is required",
     }),
+    phone: string({
+      required_error: "Phone is required",
+    }).regex(/(84|0[3|5|7|8|9])+([0-9]{8})\b/g),
+    dateOfBirth: string({
+      required_error: "DateOfBirth is required",
+    }),
+    gender: z.nativeEnum(Gender),
   }),
 });
 

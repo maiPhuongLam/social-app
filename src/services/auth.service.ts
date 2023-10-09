@@ -1,13 +1,14 @@
 import { User } from "@prisma/client";
-import { FormateData, UserCreateInput, UserLoginInput } from "../interface";
+import { FormateData, UserCreateInput, UserLoginInput } from "../custom-type";
 import { UserReposotory } from "../repositories/user.repository";
 import { hashPassword, validatePassword } from "../utils/password";
 import HttpException from "../HttpException";
 import { formateData } from "../utils/formate-data";
 import { generateToken, validateToken } from "../utils/auth-token";
 import { sendEmail } from "../utils/mail-handler";
-import * as speakeasy from "speakeasy";
-import * as qr from "qrcode";
+import config from "../config";
+// import * as speakeasy from "speakeasy";
+// import * as qr from "qrcode";
 
 export class AuthService {
   constructor(private userRepository: UserReposotory) {
@@ -21,20 +22,20 @@ export class AuthService {
       return formateData(false, 401, "Email or password incorrect", null);
     }
 
-    const chechPassword = await validatePassword(input.password, user.password);
+    const checkPassword = await validatePassword(input.password, user.password);
 
-    if (!chechPassword) {
+    if (!checkPassword) {
       return formateData(false, 401, "Email or password incorrect", null);
     }
 
     const accessToken = await generateToken(
       { id: user.id, email: user.email },
-      process.env.JWT_ACCESS_SECRET_KEY!
+      config.jwt.accessKey
     );
 
     const refreshToken = await generateToken(
       { id: user.id, email: user.email },
-      process.env.JWT_REFRESH_SECRET_KEY!
+      config.jwt.refreshKey
     );
 
     return formateData(true, 200, "User login success", {
@@ -60,12 +61,12 @@ export class AuthService {
 
     const accessToken = await generateToken(
       { id: user.id, email: user.email },
-      process.env.JWT_ACCESS_SECRET_KEY!
+      config.jwt.accessKey
     );
 
     const refreshToken = await generateToken(
       { id: user.id, email: user.email },
-      process.env.JWT_REFRESH_SECRET_KEY!
+      config.jwt.refreshKey
     );
 
     return formateData(true, 201, "User register success", {
@@ -75,13 +76,10 @@ export class AuthService {
   }
 
   async getNewToken(refreshToken: string) {
-    const token = await validateToken(
-      refreshToken,
-      process.env.JWT_REFRESH_SECRET_KEY!
-    );
+    const token = await validateToken(refreshToken, config.jwt.refreshKey);
     const newAcessToken = await generateToken(
       { id: token.id, email: token.email },
-      process.env.JWT_ACCESS_SECRET_KEY!
+      config.jwt.accessKey
     );
 
     return formateData(true, 200, "Refresh token success", {

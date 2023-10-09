@@ -1,4 +1,4 @@
-import { FormateData } from "../interface";
+import { FormateData } from "../custom-type";
 
 export const formateData = (
   isSuccess: boolean,

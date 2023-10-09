@@ -15,16 +15,26 @@ enum UserTypes {
   ADMIN
 }
 
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
 model User {
   id              Int      @id @default(autoincrement())
   email           String 
   name            String
   password        String
+  gender          Gender
+  dateOfBirth     DateTime
+  phone           String
   posts           Post[]
   type            UserTypes
   otp             Int   
   otpExpiryTime   DateTime?
-  avatar          String?  
+  avatar          String   @default("https://us.123rf.com/450wm/pavelstasevich/pavelstasevich1811/pavelstasevich181101027/112815900-no-image-available-icon-flat-vector.jpg?ver=6") 
+  avatarPublicId  String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @default(now())
 }

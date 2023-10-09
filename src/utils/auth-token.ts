@@ -1,11 +1,11 @@
 import * as jwt from "jsonwebtoken";
-
+import config from "../config";
 export const generateToken = async (
   payload: { id: number; email: string },
   key: string
 ) => {
   const token = jwt.sign(payload, key, {
-    expiresIn: key === process.env.JWT_ACCESS_SECRET_KEY! ? "1h" : "7d",
+    expiresIn: key === config.jwt.accessKey ? "1h" : "7d",
   });
 
   return token;

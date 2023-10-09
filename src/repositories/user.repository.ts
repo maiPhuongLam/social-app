@@ -1,24 +1,31 @@
 import { query } from "express";
 import { prisma } from "../index";
-import { UserCreateInput, UserQuery, UserUpdateInput } from "../interface";
+import { UserCreateInput, UserQuery, UserUpdateInput } from "../custom-type";
 export class UserReposotory {
   constructor() {}
 
   async createUser(query: UserCreateInput) {
+    const { email, name, password, gender, dateOfBirth, phone } = query;
     return await prisma.user.create({
       data: {
-        email: query.email,
-        name: query.name,
+        email,
+        name,
         type: "USER",
-        password: query.password,
+        password,
+        dateOfBirth,
+        gender,
+        phone,
         otp: Math.floor(Math.random() * 900000) + 100000,
       },
       select: {
         id: true,
         email: true,
         name: true,
-        type: true,
+        gender: true,
+        dateOfBirth: true,
+        phone: true,
         createdAt: true,
+        updatedAt: true,
       },
     });
   }
@@ -30,6 +37,9 @@ export class UserReposotory {
         email: true,
         name: true,
         type: true,
+        gender: true,
+        dateOfBirth: true,
+        phone: true,
         createdAt: true,
       },
     });
@@ -43,6 +53,9 @@ export class UserReposotory {
         email: true,
         name: true,
         type: true,
+        gender: true,
+        dateOfBirth: true,
+        phone: true,
         createdAt: true,
       },
     });
@@ -54,9 +67,12 @@ export class UserReposotory {
       select: {
         id: true,
         email: true,
-        password: true,
         name: true,
+        password: true,
         type: true,
+        gender: true,
+        dateOfBirth: true,
+        phone: true,
         otp: true,
         createdAt: true,
       },
@@ -71,6 +87,11 @@ export class UserReposotory {
         email: true,
         name: true,
         type: true,
+        gender: true,
+        dateOfBirth: true,
+        avatar: true,
+        avatarPublicId: true,
+        phone: true,
         createdAt: true,
       },
     });
@@ -80,6 +101,10 @@ export class UserReposotory {
     return await prisma.user.findFirst({
       where: { otp },
       orderBy: { updatedAt: "desc" },
+      select: {
+        id: true,
+        otpExpiryTime: true,
+      },
     });
   }
 

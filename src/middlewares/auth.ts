@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 import { validateToken } from "../utils/auth-token";
 import HttpResponse from "../HttpResponse";
+import config from "../config";
 export const auth = async (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.get("Authorization");
   if (!authHeader) {
@@ -11,10 +12,7 @@ export const auth = async (req: Request, res: Response, next: NextFunction) => {
   const token = authHeader.split(" ")[1];
   let decode;
   try {
-    decode = (await validateToken(
-      token,
-      process.env.JWT_ACCESS_SECRET_KEY!
-    )) as {
+    decode = (await validateToken(token, config.jwt.accessKey)) as {
       id: number;
       email: string;
     };

@@ -1,5 +1,5 @@
 import * as nodemailer from "nodemailer";
-
+import config from "../config";
 export const sendEmail = async (
   email: string,
   title: string,
@@ -11,7 +11,7 @@ export const sendEmail = async (
     port: 2525,
     auth: {
       user: "maiphuonglambh.2002@gmail.com",
-      pass: process.env.PASS_EMAIL_GOOGLE,
+      pass: config.googlePass,
     },
   });
 
