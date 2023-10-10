@@ -1,10 +1,10 @@
 import express from "express";
 import { validationResource } from "../middlewares/validation-resource";
 import {
-  getUserSchema,
-  updateUserSchema,
+  getProfileSchema,
+  updateProfileSchema,
   uploadAvatarSchema,
-} from "../dtos/user.dto";
+} from "../dtos/profile.dto";
 import {
   getProfile,
   updateProfile,
@@ -14,20 +14,24 @@ import { auth } from "../middlewares/auth";
 
 const profileRoute = express.Router();
 
-profileRoute.get("/:id", auth, validationResource(getUserSchema), getProfile);
+profileRoute.get(
+  "/:id",
+  auth,
+  validationResource(getProfileSchema),
+  getProfile
+);
 profileRoute.put(
   "/:id",
   auth,
-  validationResource(updateUserSchema),
+  validationResource(updateProfileSchema),
   updateProfile
 );
 
-validationResource(updateUserSchema),
-  profileRoute.put(
-    "/:id/avatar",
-    auth,
-    validationResource(uploadAvatarSchema),
-    uploadAvatar
-  );
+profileRoute.put(
+  "/:id/avatar",
+  auth,
+  validationResource(uploadAvatarSchema),
+  uploadAvatar
+);
 
 export default profileRoute;

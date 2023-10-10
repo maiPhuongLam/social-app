@@ -4,6 +4,7 @@ import authRouter from "./routes/auth.route";
 import errorHandler from "./middlewares/error-handler";
 import profileRoute from "./routes/profile.route";
 import { upload } from "./middlewares/upload";
+import feedRoute from "./routes/feed.route";
 
 export const expressApp = (app: Express) => {
   app.use(cors({ origin: "*" }));
@@ -11,5 +12,6 @@ export const expressApp = (app: Express) => {
   app.use(upload);
   app.use("/api/v1/auth", authRouter);
   app.use("/api/v1/profile", profileRoute);
+  app.use("/api/v1/feed", feedRoute);
   app.use(errorHandler);
 };

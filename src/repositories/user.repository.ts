@@ -1,20 +1,13 @@
-import { query } from "express";
 import { prisma } from "../index";
-import { UserCreateInput, UserQuery, UserUpdateInput } from "../custom-type";
+import { CreateUserInput, UserQuery, UpdateUserInput } from "../custom-type";
 export class UserReposotory {
   constructor() {}
 
-  async createUser(query: UserCreateInput) {
-    const { email, name, password, gender, dateOfBirth, phone } = query;
+  async createUser(data: CreateUserInput) {
     return await prisma.user.create({
       data: {
-        email,
-        name,
+        ...data,
         type: "USER",
-        password,
-        dateOfBirth,
-        gender,
-        phone,
         otp: Math.floor(Math.random() * 900000) + 100000,
       },
       select: {
@@ -80,7 +73,7 @@ export class UserReposotory {
   }
 
   async findUserById(id: number) {
-    return await prisma.user.findFirst({
+    return await prisma.user.findUnique({
       where: { id },
       select: {
         id: true,
@@ -108,7 +101,7 @@ export class UserReposotory {
     });
   }
 
-  async updateUser(id: number, data: UserUpdateInput) {
+  async updateUser(id: number, data: UpdateUserInput) {
     return await prisma.user.update({
       where: { id },
       data: {
@@ -117,10 +110,7 @@ export class UserReposotory {
       },
       select: {
         id: true,
-        email: true,
-        name: true,
-        type: true,
-        createdAt: true,
+        avatar: true,
       },
     });
   }

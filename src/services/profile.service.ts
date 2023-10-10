@@ -1,4 +1,4 @@
-import { UserUpdateInput } from "../custom-type";
+import { UpdateUserInput } from "../custom-type";
 import { UserReposotory } from "../repositories/user.repository";
 import { formateData } from "../utils/formate-data";
 import cloudinary from "cloudinary";
@@ -7,7 +7,6 @@ import config from "../config";
 
 export class ProfileService {
   constructor(private userRepository: UserReposotory) {
-    this.userRepository = new UserReposotory();
     cloudinary.v2.config({
       cloud_name: config.cloudinary.cloud_name,
       api_key: config.cloudinary.api_key,
@@ -27,7 +26,7 @@ export class ProfileService {
     });
   }
 
-  async updateProfile(id: number, input: UserUpdateInput) {
+  async updateProfile(id: number, input: UpdateUserInput) {
     const userProfile = await this.userRepository.findUserById(id);
     if (!userProfile) {
       return formateData(false, 404, "User not found", null);

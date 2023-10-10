@@ -1,3 +1,5 @@
+import { User } from "@prisma/client";
+
 export interface CustomRequest extends Request {
   userId: number; // Change the type to match your actual userId type
 }
@@ -7,7 +9,7 @@ export type UserQuery = {
   name?: string | Record<string, any>;
 };
 
-export type UserCreateInput = {
+export type CreateUserInput = {
   email: string;
   name: string;
   phone: string;
@@ -34,7 +36,7 @@ export enum Gender {
   OTHER = "OTHER",
 }
 
-export type UserUpdateInput = {
+export type UpdateUserInput = {
   email?: string;
   name?: string;
   avatar?: string;
@@ -53,3 +55,20 @@ export type FormateData = {
   isSuccess: boolean;
   data: any;
 };
+
+export type CreatePostInput = {
+  title: string;
+  content: string;
+  published: boolean;
+  authorId: number;
+};
+
+export type UpdatePostInput = {
+  title?: string;
+  content?: string;
+  published?: boolean;
+};
+
+// export type PostQuery = {
+//   published: boolean;
+// };

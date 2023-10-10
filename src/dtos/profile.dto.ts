@@ -1,7 +1,7 @@
 import { TypeOf, date, number, object, string, z } from "zod";
 import { Gender } from "../custom-type";
 
-const getUserSchema = object({
+const getProfileSchema = object({
   params: object({
     id: string({
       required_error: "Id is required",
@@ -9,7 +9,7 @@ const getUserSchema = object({
   }),
 });
 
-const updateUserSchema = object({
+const updateProfileSchema = object({
   params: object({
     id: string({
       required_error: "Id is required",
@@ -45,15 +45,15 @@ const uploadAvatarSchema = object({
   }),
 });
 
-type GetUserDto = TypeOf<typeof getUserSchema>;
-type UpdateUserDto = TypeOf<typeof updateUserSchema>;
+type GetProfileDto = TypeOf<typeof getProfileSchema>;
+type UpdateProfileDto = TypeOf<typeof updateProfileSchema>;
 type UploadAvatarDto = TypeOf<typeof uploadAvatarSchema>;
 
 export {
-  getUserSchema,
-  updateUserSchema,
+  getProfileSchema,
+  updateProfileSchema,
   uploadAvatarSchema,
-  GetUserDto,
-  UpdateUserDto,
+  GetProfileDto,
+  UpdateProfileDto,
   UploadAvatarDto,
 };

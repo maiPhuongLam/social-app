@@ -1,5 +1,5 @@
 import { User } from "@prisma/client";
-import { FormateData, UserCreateInput, UserLoginInput } from "../custom-type";
+import { FormateData, CreateUserInput, UserLoginInput } from "../custom-type";
 import { UserReposotory } from "../repositories/user.repository";
 import { hashPassword, validatePassword } from "../utils/password";
 import HttpException from "../HttpException";
@@ -44,7 +44,7 @@ export class AuthService {
     });
   }
 
-  async register(input: UserCreateInput): Promise<FormateData> {
+  async register(input: CreateUserInput): Promise<FormateData> {
     const existedUser = await this.userRepository.findUserByEmail(input.email);
     if (existedUser) {
       return formateData(

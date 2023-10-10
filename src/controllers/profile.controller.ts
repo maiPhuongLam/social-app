@@ -3,7 +3,11 @@ import { ProfileService } from "../services/profile.service";
 import { UserReposotory } from "../repositories/user.repository";
 import HttpResponse from "../HttpResponse";
 import HttpException from "../HttpException";
-import { GetUserDto, UpdateUserDto, UploadAvatarDto } from "../dtos/user.dto";
+import {
+  GetProfileDto,
+  UpdateProfileDto,
+  UploadAvatarDto,
+} from "../dtos/profile.dto";
 
 const profileService = new ProfileService(new UserReposotory());
 
@@ -13,7 +17,7 @@ export const getProfile = async (
   next: NextFunction
 ) => {
   try {
-    const { id } = <GetUserDto["params"]>req.params;
+    const { id } = <GetProfileDto["params"]>req.params;
     const { isSuccess, statusCode, message, data } =
       await profileService.getProfile(+id);
 
@@ -35,8 +39,8 @@ export const updateProfile = async (
   next: NextFunction
 ) => {
   try {
-    const { id } = <UpdateUserDto["params"]>req.params;
-    const updatedField = <UpdateUserDto["body"]>req.body;
+    const { id } = <UpdateProfileDto["params"]>req.params;
+    const updatedField = <UpdateProfileDto["body"]>req.body;
     const { isSuccess, statusCode, message, data } =
       await profileService.updateProfile(+id, updatedField);
 
@@ -60,11 +64,14 @@ export const uploadAvatar = async (
   try {
     const { id } = <UploadAvatarDto["params"]>req.params;
     const file = req.file as Express.Multer.File;
+
     if (!file) {
       throw new HttpException(400, "file not found");
     }
+
     const { isSuccess, statusCode, message, data } =
       await profileService.uploadAvatar(+id, file);
+
     if (!isSuccess) {
       throw new HttpException(statusCode, message);
     }

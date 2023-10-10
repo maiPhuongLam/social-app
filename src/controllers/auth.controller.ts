@@ -63,6 +63,7 @@ export const login = async (
     res.cookie("_auth_token_", data.refresh_token, {
       httpOnly: true,
     });
+
     return res
       .status(201)
       .json(new HttpResponse(statusCode, message, data.access_token));
@@ -78,12 +79,14 @@ export const refreshToken = async (
 ) => {
   try {
     const token = <string>req.cookies._auth_token_;
+
     if (!token) {
       throw new HttpException(401, "Unauthorized");
     }
 
     const { isSuccess, statusCode, message, data } =
       await authService.getNewToken(token);
+
     if (!isSuccess) {
       throw new HttpException(statusCode, message);
     }
