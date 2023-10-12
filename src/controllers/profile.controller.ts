@@ -8,8 +8,13 @@ import {
   UpdateProfileDto,
   UploadAvatarDto,
 } from "../dtos/profile.dto";
+import { CacheService } from "../services/cache.service";
+import { Redis } from "ioredis";
 
-const profileService = new ProfileService(new UserReposotory());
+const profileService = new ProfileService(
+  new UserReposotory(),
+  new CacheService(new Redis())
+);
 
 export const getProfile = async (
   req: Request,

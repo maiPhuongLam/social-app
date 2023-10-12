@@ -46,6 +46,7 @@ export class AuthService {
 
   async register(input: CreateUserInput): Promise<FormateData> {
     const existedUser = await this.userRepository.findUserByEmail(input.email);
+
     if (existedUser) {
       return formateData(
         false,
@@ -92,12 +93,7 @@ export class AuthService {
     if (!user) {
       return formateData(false, 404, "Email incorrect", null);
     }
-    // const otpStorage: { [key: string]: { secret: string; expiresAt: number } } = {};
-    // const secret = speakeasy.generateSecret()
-    // otpStorage[email] = {
-    //   secret: secret.base32,
-    //   expiresAt: Date.now() + 60000,
-    // };
+
     const otp = Math.floor(Math.random() * 900000) + 100000;
     const otpExpiryTime = new Date();
     otpExpiryTime.setMinutes(otpExpiryTime.getMinutes() + 1);
@@ -111,10 +107,13 @@ export class AuthService {
 
   async checkOtp(otp: number) {
     const user = await this.userRepository.findUserByOtp(otp);
+
     if (!user) {
       return formateData(false, 404, "Invalid Otp", null);
     }
+
     const currentTime = new Date(Date.now());
+
     if (user.otpExpiryTime! < currentTime) {
       return formateData(false, 404, "Invalid Otp", null);
     }
@@ -124,6 +123,7 @@ export class AuthService {
 
   async resetPassword(id: number, password: string) {
     const user = await this.userRepository.findUserById(id);
+
     if (!user) {
       return formateData(false, 404, "User not found", null);
     }

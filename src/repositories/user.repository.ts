@@ -110,7 +110,15 @@ export class UserReposotory {
       },
       select: {
         id: true,
+        email: true,
+        name: true,
+        type: true,
+        gender: true,
+        dateOfBirth: true,
         avatar: true,
+        avatarPublicId: true,
+        phone: true,
+        createdAt: true,
       },
     });
   }

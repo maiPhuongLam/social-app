@@ -3,9 +3,14 @@ import { FeedService } from "../services/feed.service";
 import { PostRepository } from "../repositories/post.repository";
 import HttpResponse from "../HttpResponse";
 import HttpException from "../HttpException";
-import { CreatePostInput } from "../custom-type";
 import { CreatPostDto, UpdatePostDto } from "../dtos/post.dto";
-const feedService = new FeedService(new PostRepository());
+import { CacheService } from "../services/cache.service";
+import Redis from "ioredis";
+const feedService = new FeedService(
+  new PostRepository(),
+  new CacheService(new Redis())
+);
+const cacheService = new CacheService(new Redis());
 
 export const createPost = async (
   req: Request,
@@ -34,19 +39,22 @@ export const getPost = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { id } = req.params;
+  try {
+    const { id } = req.params;
+    const { isSuccess, statusCode, message, data } = await feedService.getPost(
+      +id
+    );
 
-  const { isSuccess, statusCode, message, data } = await feedService.getPost(
-    +id
-  );
+    if (!isSuccess) {
+      throw new HttpException(statusCode, message);
+    }
 
-  if (!isSuccess) {
-    throw new HttpException(statusCode, message);
+    return res
+      .status(statusCode)
+      .json(new HttpResponse(statusCode, message, data));
+  } catch (error) {
+    next(error);
   }
-
-  return res
-    .status(statusCode)
-    .json(new HttpResponse(statusCode, message, data));
 };
 
 export const getListPosts = async (
@@ -54,15 +62,20 @@ export const getListPosts = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { isSuccess, statusCode, message, data } = await feedService.getPosts();
+  try {
+    const { isSuccess, statusCode, message, data } =
+      await feedService.getPosts();
 
-  if (!isSuccess) {
-    throw new HttpException(statusCode, message);
+    if (!isSuccess) {
+      throw new HttpException(statusCode, message);
+    }
+
+    return res
+      .status(statusCode)
+      .json(new HttpResponse(statusCode, message, data));
+  } catch (error) {
+    next(error);
   }
-
-  return res
-    .status(statusCode)
-    .json(new HttpResponse(statusCode, message, data));
 };
 
 export const updatePost = async (
@@ -93,19 +106,21 @@ export const deletePost = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { id } = req.params;
+  try {
+    const { id } = req.params;
+    const { isSuccess, statusCode, message, data } =
+      await feedService.deletePost(+id);
 
-  const { isSuccess, statusCode, message, data } = await feedService.deletePost(
-    +id
-  );
+    if (!isSuccess) {
+      throw new HttpException(statusCode, message);
+    }
 
-  if (!isSuccess) {
-    throw new HttpException(statusCode, message);
+    return res
+      .status(statusCode)
+      .json(new HttpResponse(statusCode, message, data));
+  } catch (error) {
+    next(error);
   }
-
-  return res
-    .status(statusCode)
-    .json(new HttpResponse(statusCode, message, data));
 };
 
 export const likePost = async (

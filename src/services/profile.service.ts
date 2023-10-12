@@ -4,9 +4,13 @@ import { formateData } from "../utils/formate-data";
 import cloudinary from "cloudinary";
 import { unlinkSync } from "fs";
 import config from "../config";
+import { CacheService } from "./cache.service";
 
 export class ProfileService {
-  constructor(private userRepository: UserReposotory) {
+  constructor(
+    private userRepository: UserReposotory,
+    private cacheService: CacheService
+  ) {
     cloudinary.v2.config({
       cloud_name: config.cloudinary.cloud_name,
       api_key: config.cloudinary.api_key,
@@ -16,10 +20,21 @@ export class ProfileService {
   }
 
   async getProfile(id: number) {
+    const cache = await this.cacheService.getData(`profiles:${id}`);
+
+    if (cache.data) {
+      console.log("Cache data success");
+      return cache;
+    }
+
     const userProfile = await this.userRepository.findUserById(id);
+
     if (!userProfile) {
       return formateData(false, 404, "User not found", null);
     }
+
+    await this.cacheService.setData(`profiles:${id}`, 3600, userProfile);
+
     return formateData(true, 200, "Get Profile success", {
       ...userProfile,
       dateOfBirth: userProfile.dateOfBirth.toLocaleDateString(),
@@ -28,20 +43,24 @@ export class ProfileService {
 
   async updateProfile(id: number, input: UpdateUserInput) {
     const userProfile = await this.userRepository.findUserById(id);
+
     if (!userProfile) {
       return formateData(false, 404, "User not found", null);
     }
 
     const updatedUser = await this.userRepository.updateUser(id, input);
+    await this.cacheService.setData(`profiles:${id}`, 3600, updatedUser);
+
     return formateData(true, 200, "Get Profile success", updatedUser);
   }
 
   async uploadAvatar(id: number, file: Express.Multer.File) {
     const userProfile = await this.userRepository.findUserById(id);
+
     if (!userProfile) {
       return formateData(false, 404, "User not found", null);
     }
-    console.log(userProfile.avatarPublicId);
+
     if (userProfile.avatar && userProfile.avatarPublicId) {
       await cloudinary.v2.uploader.destroy(userProfile.avatarPublicId, {
         invalidate: true,
@@ -62,13 +81,14 @@ export class ProfileService {
         },
       ],
     });
-    console.log(resCloudinary);
+
     unlinkSync(file.path);
 
     const data = await this.userRepository.updateUser(id, {
       avatar: resCloudinary.secure_url,
       avatarPublicId: resCloudinary.public_id,
     });
+    await this.cacheService.setData(`profiles:${id}`, 3600, data);
 
     return formateData(true, 200, "Upload avatar success", data);
   }
