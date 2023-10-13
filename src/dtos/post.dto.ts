@@ -41,11 +41,12 @@ const getPostSchema = object({ params });
 
 type CreatPostDto = TypeOf<typeof createPostSchema>;
 type UpdatePostDto = TypeOf<typeof updatePostSchema>;
-
+type GetPostSchema = TypeOf<typeof getPostSchema>;
 export {
   createPostSchema,
   CreatPostDto,
   updatePostSchema,
   UpdatePostDto,
   getPostSchema,
+  GetPostSchema,
 };

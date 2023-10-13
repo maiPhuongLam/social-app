@@ -1,4 +1,6 @@
 import { CreatePostInput, UpdatePostInput } from "../custom-type";
+import { CommentRepository } from "../repositories/comment.repository";
+import { LikeRepository } from "../repositories/like.repository";
 import { PostRepository } from "../repositories/post.repository";
 import { formateData } from "../utils/formate-data";
 import { CacheService } from "./cache.service";
@@ -6,6 +8,8 @@ import { CacheService } from "./cache.service";
 export class FeedService {
   constructor(
     private readonly postRepository: PostRepository,
+    private readonly likeRepository: LikeRepository,
+    private readonly commentRepository: CommentRepository,
     private readonly cacheService: CacheService
   ) {}
 
@@ -87,5 +91,72 @@ export class FeedService {
     await this.cacheService.setData(`posts`, 3600, posts);
 
     return formateData(true, 200, "Delte post success", data);
+  }
+
+  async likePost(userId: number, postId: number) {
+    const exist = await this.likeRepository.getLike(userId, postId);
+
+    if (exist) {
+      return formateData(false, 403, "Action like is forbidden", null);
+    }
+
+    const like = await this.likeRepository.createLike(userId, postId);
+    const posts = await this.postRepository.findPosts();
+    const post = await this.postRepository.findPostById(postId);
+    await this.cacheService.setData(`posts`, 3600, posts);
+    await this.cacheService.setData(`posts:${postId}`, 3600, post);
+
+    return formateData(true, 201, "Like post success", like);
+  }
+
+  async dislikePost(userId: number, postId: number) {
+    const exist = await this.likeRepository.getLike(userId, postId);
+
+    if (!exist) {
+      return formateData(false, 403, "Action like is forbidden", null);
+    }
+
+    const like = await this.likeRepository.deleteLike(userId, postId);
+    const posts = await this.postRepository.findPosts();
+    const post = await this.postRepository.findPostById(postId);
+    await this.cacheService.setData(`posts`, 3600, posts);
+    await this.cacheService.setData(`posts:${postId}`, 3600, post);
+
+    return formateData(true, 201, "Dislike post success", like);
+  }
+
+  async commentPost(userId: number, postId: number, content: string) {
+    const comment = await this.commentRepository.createComment(
+      userId,
+      postId,
+      content
+    );
+    const posts = await this.postRepository.findPosts();
+    const post = await this.postRepository.findPostById(postId);
+    await this.cacheService.setData(`posts`, 3600, posts);
+    await this.cacheService.setData(`posts:${postId}`, 3600, post);
+
+    return formateData(true, 201, "Comment post success", comment);
+  }
+
+  async deleteCommentPost(id: number, userId: number) {
+    const comment = await this.commentRepository.getComment(id);
+
+    if (!comment) {
+      return formateData(false, 404, "Action like is forbidden", null);
+    }
+    console.log(comment.userId);
+    console.log(userId);
+    if (comment.userId !== userId) {
+      return formateData(false, 401, "Unauthorized", null);
+    }
+
+    const data = await this.commentRepository.deleteComment(id);
+    const posts = await this.postRepository.findPosts();
+    const post = await this.postRepository.findPostById(id);
+    await this.cacheService.setData(`posts`, 3600, posts);
+    await this.cacheService.setData(`posts:${id}`, 3600, post);
+
+    return formateData(true, 201, "Delete post success", data);
   }
 }

@@ -73,6 +73,9 @@ export class UserReposotory {
   }
 
   async findUserById(id: number) {
+    if (!id) {
+      return null;
+    }
     return await prisma.user.findUnique({
       where: { id },
       select: {
@@ -102,6 +105,9 @@ export class UserReposotory {
   }
 
   async updateUser(id: number, data: UpdateUserInput) {
+    if (!id) {
+      return null;
+    }
     return await prisma.user.update({
       where: { id },
       data: {
@@ -124,6 +130,9 @@ export class UserReposotory {
   }
 
   async removeUser(id: number) {
+    if (!id) {
+      return null;
+    }
     return await prisma.user.delete({ where: { id } });
   }
 }

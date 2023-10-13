@@ -22,7 +22,7 @@ export const getProfile = async (
   next: NextFunction
 ) => {
   try {
-    const { id } = <GetProfileDto["params"]>req.params;
+    const { id } = req.params;
     const { isSuccess, statusCode, message, data } =
       await profileService.getProfile(+id);
 
@@ -44,7 +44,7 @@ export const updateProfile = async (
   next: NextFunction
 ) => {
   try {
-    const { id } = <UpdateProfileDto["params"]>req.params;
+    const { id } = req.params;
     const updatedField = <UpdateProfileDto["body"]>req.body;
     const { isSuccess, statusCode, message, data } =
       await profileService.updateProfile(+id, updatedField);
@@ -67,7 +67,7 @@ export const uploadAvatar = async (
   next: NextFunction
 ) => {
   try {
-    const { id } = <UploadAvatarDto["params"]>req.params;
+    const { id } = req.params;
     const file = req.file as Express.Multer.File;
 
     if (!file) {
