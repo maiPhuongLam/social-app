@@ -2,6 +2,7 @@ import { CreatePostInput, UpdatePostInput } from "../custom-type";
 import { CommentRepository } from "../repositories/comment.repository";
 import { LikeRepository } from "../repositories/like.repository";
 import { PostRepository } from "../repositories/post.repository";
+import { SharedPostRepository } from "../repositories/sharedPost.repository";
 import { formateData } from "../utils/formate-data";
 import { CacheService } from "./cache.service";
 
@@ -10,6 +11,7 @@ export class FeedService {
     private readonly postRepository: PostRepository,
     private readonly likeRepository: LikeRepository,
     private readonly commentRepository: CommentRepository,
+    private readonly sharedPostRepository: SharedPostRepository,
     private readonly cacheService: CacheService
   ) {}
 
@@ -48,6 +50,7 @@ export class FeedService {
     }
 
     await this.cacheService.setData("posts", 3600, posts);
+
     return formateData(true, 200, "Fetch post success", posts);
   }
 
@@ -158,5 +161,54 @@ export class FeedService {
     await this.cacheService.setData(`posts:${id}`, 3600, post);
 
     return formateData(true, 201, "Delete post success", data);
+  }
+
+  async sharedPost(userId: number, postId: number) {
+    const exist = await this.sharedPostRepository.getSharedPost(userId, postId);
+
+    if (exist) {
+      return formateData(false, 403, "Action like is forbidden", null);
+    }
+
+    const sharedPost = await this.sharedPostRepository.createSharedPost(
+      userId,
+      postId
+    );
+
+    if (!sharedPost) {
+      return formateData(false, 400, "Share post fail", null);
+    }
+    // const newPost = await this.postRepository.createPost({
+    //   title: sharedPost?.post.title,
+    //   authorId: sharedPost?.post.authorId,
+    //   content: sharedPost.post.content,
+    //   published: true
+    // })
+    const posts = await this.postRepository.findPosts();
+    const post = await this.postRepository.findPostById(postId);
+    await this.cacheService.setData(`posts`, 3600, posts);
+    await this.cacheService.setData(`posts:${postId}`, 3600, post);
+
+    return formateData(true, 201, "Shared post success", sharedPost);
+  }
+
+  async unSharePost(userId: number, postId: number) {
+    const exist = await this.sharedPostRepository.getSharedPost(userId, postId);
+
+    if (!exist) {
+      return formateData(false, 403, "Post not exist", null);
+    }
+
+    const data = await this.sharedPostRepository.deleteSharedPost(
+      userId,
+      postId
+    );
+
+    const posts = await this.postRepository.findPosts();
+    const post = await this.postRepository.findPostById(postId);
+    await this.cacheService.setData(`posts`, 3600, posts);
+    await this.cacheService.setData(`posts:${postId}`, 3600, post);
+
+    return formateData(true, 201, "Unshared post success", data);
   }
 }

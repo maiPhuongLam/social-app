@@ -79,6 +79,7 @@ export class UserReposotory {
     return await prisma.user.findUnique({
       where: { id },
       select: {
+        _count: true,
         id: true,
         email: true,
         name: true,
@@ -89,6 +90,28 @@ export class UserReposotory {
         avatarPublicId: true,
         phone: true,
         createdAt: true,
+        followedBy: {
+          select: {
+            following: {
+              select: {
+                _count: true,
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
+        following: {
+          select: {
+            following: {
+              select: {
+                _count: true,
+                id: true,
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
   }

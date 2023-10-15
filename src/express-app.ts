@@ -7,6 +7,7 @@ import { upload } from "./middlewares/upload";
 import feedRoute from "./routes/feed.route";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./swagger";
+import followRoute from "./routes/follow.route";
 
 export const expressApp = (app: Express) => {
   app.use(cors({ origin: "*" }));
@@ -16,5 +17,6 @@ export const expressApp = (app: Express) => {
   app.use("/api/v1/auth", authRouter);
   app.use("/api/v1/profile", profileRoute);
   app.use("/api/v1/feed", feedRoute);
+  app.use("/api/v1/follows", followRoute);
   app.use(errorHandler);
 };

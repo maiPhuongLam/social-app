@@ -8,11 +8,12 @@ import { CacheService } from "../services/cache.service";
 import Redis from "ioredis";
 import { LikeRepository } from "../repositories/like.repository";
 import { CommentRepository } from "../repositories/comment.repository";
-import { LikeDto } from "../dtos/like.dto";
+import { SharedPostRepository } from "../repositories/sharedPost.repository";
 const feedService = new FeedService(
   new PostRepository(),
   new LikeRepository(),
   new CommentRepository(),
+  new SharedPostRepository(),
   new CacheService(new Redis())
 );
 const cacheService = new CacheService(new Redis());
@@ -135,7 +136,6 @@ export const likePost = async (
 ) => {
   try {
     const { postId } = req.params;
-    console.log(req.userId);
     const userId = req.userId!;
     const { isSuccess, statusCode, message, data } = await feedService.likePost(
       userId,
@@ -181,7 +181,47 @@ export const sharePost = async (
   req: Request,
   res: Response,
   next: NextFunction
-) => {};
+) => {
+  try {
+    const { postId } = req.params;
+    const userId = req.userId!;
+    const { isSuccess, statusCode, message, data } =
+      await feedService.sharedPost(userId, +parseInt(postId));
+
+    if (!isSuccess) {
+      throw new HttpException(statusCode, message);
+    }
+
+    return res
+      .status(statusCode)
+      .json(new HttpResponse(statusCode, message, data));
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const unSharePost = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { postId } = req.params;
+    const userId = req.userId!;
+    const { isSuccess, statusCode, message, data } =
+      await feedService.unSharePost(userId, +parseInt(postId));
+
+    if (!isSuccess) {
+      throw new HttpException(statusCode, message);
+    }
+
+    return res
+      .status(statusCode)
+      .json(new HttpResponse(statusCode, message, data));
+  } catch (error) {
+    next(error);
+  }
+};
 
 export const commentPost = async (
   req: Request,
@@ -214,7 +254,6 @@ export const deleteCommentPost = async (
 ) => {
   try {
     const { commentId } = req.params;
-    const { content } = req.body;
     const userId = req.userId!;
     const { isSuccess, statusCode, message, data } =
       await feedService.deleteCommentPost(parseInt(commentId), userId);

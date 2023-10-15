@@ -8,6 +8,8 @@ import {
   getListPosts,
   getPost,
   likePost,
+  sharePost,
+  unSharePost,
   updatePost,
 } from "../controllers/feed.controller";
 
@@ -20,6 +22,7 @@ import {
 } from "../dtos/post.dto";
 import { likeSchema } from "../dtos/like.dto";
 import { createCommentSchema, deleteCommentSchema } from "../dtos/comment.dto";
+import { shareSchema } from "../dtos/share.dto";
 
 const feedRoute = express.Router();
 
@@ -66,6 +69,18 @@ feedRoute.delete(
   auth,
   validationResource(deleteCommentSchema),
   deleteCommentPost
+);
+feedRoute.post(
+  "/posts/:postId/share",
+  auth,
+  validationResource(shareSchema),
+  sharePost
+);
+feedRoute.delete(
+  "/posts/:postId/share",
+  auth,
+  validationResource(shareSchema),
+  unSharePost
 );
 
 export default feedRoute;
