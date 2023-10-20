@@ -1,3 +1,4 @@
+import config from "../config";
 import { CreatePostInput, UpdatePostInput } from "../custom-type";
 import { CommentRepository } from "../repositories/comment.repository";
 import { LikeRepository } from "../repositories/like.repository";
@@ -5,6 +6,8 @@ import { PostRepository } from "../repositories/post.repository";
 import { SharedPostRepository } from "../repositories/sharedPost.repository";
 import { formateData } from "../utils/formate-data";
 import { CacheService } from "./cache.service";
+import cloudinary from "cloudinary";
+import { unlinkSync } from "fs";
 
 export class FeedService {
   constructor(
@@ -13,7 +16,14 @@ export class FeedService {
     private readonly commentRepository: CommentRepository,
     private readonly sharedPostRepository: SharedPostRepository,
     private readonly cacheService: CacheService
-  ) {}
+  ) {
+    cloudinary.v2.config({
+      cloud_name: config.cloudinary.cloud_name,
+      api_key: config.cloudinary.api_key,
+      api_secret: config.cloudinary.api_secret,
+      secure: true,
+    });
+  }
 
   async getPost(id: number) {
     const cache = await this.cacheService.getData(`posts:${id}`);
@@ -54,31 +64,110 @@ export class FeedService {
     return formateData(true, 200, "Fetch post success", posts);
   }
 
-  async createPost(input: CreatePostInput) {
-    const post = await this.postRepository.createPost(input);
+  async createPost(input: CreatePostInput, file: Express.Multer.File) {
+    const { content, link, location } = input;
 
-    if (!post) {
+    if (file || content || link || location) {
+      if (file) {
+        const resCloudinary = await cloudinary.v2.uploader.upload(file.path, {
+          folder: `${config.cloudinary.folderPath}/posts`,
+          public_id: `${config.cloudinary.publicId_prefix}${Date.now()}`,
+          transformation: [
+            {
+              width: "400x400".toString().split("x")[0],
+              height: "400x400".toString().split("x")[1],
+              crop: "fill",
+            },
+            {
+              quality: "auto",
+            },
+          ],
+        });
+        unlinkSync(file.path);
+        const post = await this.postRepository.createPost({
+          ...input,
+          image: resCloudinary.secure_url,
+          imagePublicId: resCloudinary.public_id,
+        });
+
+        const posts = await this.postRepository.findPosts();
+        await this.cacheService.setData(`posts`, 3600, posts);
+
+        return formateData(true, 201, "Create post success", post);
+      }
+      const post = await this.postRepository.createPost(input);
+
+      if (!post) {
+        return formateData(false, 400, "Create post fail", null);
+      }
+
+      const posts = await this.postRepository.findPosts();
+      await this.cacheService.setData(`posts`, 3600, posts);
+
+      return formateData(true, 201, "Create post success", post);
+    } else {
       return formateData(false, 400, "Create post fail", null);
     }
-    const posts = await this.postRepository.findPosts();
-    await this.cacheService.setData(`posts`, 3600, posts);
-
-    return formateData(true, 201, "Create post success", post);
   }
 
-  async updatePost(id: number, input: UpdatePostInput) {
-    const post = await this.postRepository.findPostById(id);
+  async updatePost(
+    id: number,
+    input: UpdatePostInput,
+    image: Express.Multer.File
+  ) {
+    const postExist = await this.postRepository.findPostById(id);
 
-    if (!post) {
+    if (!postExist) {
       return formateData(false, 404, "Post not found", null);
     }
 
-    const updatedPost = await this.postRepository.updatePost(id, input);
-    await this.cacheService.setData(`posts:${id}`, 3600, updatedPost);
-    const posts = await this.postRepository.findPosts();
-    await this.cacheService.setData(`posts`, 3600, posts);
+    const { content, link, location, published } = input;
 
-    return formateData(true, 200, "Update post success", updatedPost);
+    if (image || content || link || location || published !== undefined) {
+      console.log(1);
+      if (image && postExist.imagePublicId) {
+        await cloudinary.v2.uploader.destroy(postExist.imagePublicId, {
+          invalidate: true,
+        });
+      }
+      if (image) {
+        const resCloudinary = await cloudinary.v2.uploader.upload(image.path, {
+          folder: `${config.cloudinary.folderPath}/posts`,
+          public_id: `${config.cloudinary.publicId_prefix}${Date.now()}`,
+          transformation: [
+            {
+              width: "400x400".toString().split("x")[0],
+              height: "400x400".toString().split("x")[1],
+              crop: "fill",
+            },
+            {
+              quality: "auto",
+            },
+          ],
+        });
+        unlinkSync(image.path);
+        const post = await this.postRepository.updatePost(id, {
+          ...input,
+          image: resCloudinary.secure_url,
+          imagePublicId: resCloudinary.public_id,
+        });
+
+        const posts = await this.postRepository.findPosts();
+        this.cacheService.setData(`posts`, 3600, posts);
+        this.cacheService.setData(`posts:${post?.id}`, 3600, post);
+
+        return formateData(true, 200, "Update post success", post);
+      }
+
+      const post = await this.postRepository.updatePost(id, input);
+      const posts = await this.postRepository.findPosts();
+      this.cacheService.setData(`posts`, 3600, posts);
+      this.cacheService.setData(`posts:${post?.id}`, 3600, post);
+
+      return formateData(true, 200, "Update post success", post);
+    } else {
+      return formateData(false, 400, "Update post fail", null);
+    }
   }
 
   async deletePost(id: number) {

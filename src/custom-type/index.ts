@@ -57,15 +57,21 @@ export type FormateData = {
 };
 
 export type CreatePostInput = {
-  title: string;
-  content: string;
+  content?: string;
+  image?: string;
+  imagePublicId?: string;
+  location?: string;
+  link?: string;
   published: boolean;
   authorId: number;
 };
 
 export type UpdatePostInput = {
-  title?: string;
   content?: string;
+  image?: string;
+  imagePublicId?: string;
+  location?: string;
+  link?: string;
   published?: boolean;
 };
 

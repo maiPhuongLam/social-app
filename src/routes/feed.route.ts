@@ -26,58 +26,38 @@ import { shareSchema } from "../dtos/share.dto";
 
 const feedRoute = express.Router();
 
-feedRoute.post(
-  "/posts",
-  auth,
-  validationResource(createPostSchema),
-  createPost
-);
-feedRoute.put(
-  "/posts/:id",
-  auth,
-  validationResource(updatePostSchema),
-  updatePost
-);
-feedRoute.get("/posts/:id", validationResource(getPostSchema), getPost);
+feedRoute.post("/", auth, validationResource(createPostSchema), createPost);
+feedRoute.put("/:id", auth, validationResource(updatePostSchema), updatePost);
+feedRoute.get("/:id", validationResource(getPostSchema), getPost);
+feedRoute.delete("/:id", auth, validationResource(getPostSchema), deletePost);
+feedRoute.get("/", getListPosts);
+feedRoute.post("/:postId/like", auth, validationResource(likeSchema), likePost);
 feedRoute.delete(
-  "/posts/:id",
-  auth,
-  validationResource(getPostSchema),
-  deletePost
-);
-feedRoute.get("/posts", getListPosts);
-feedRoute.post(
-  "/posts/:postId/like",
-  auth,
-  validationResource(likeSchema),
-  likePost
-);
-feedRoute.delete(
-  "/posts/:postId/dislike",
+  "/:postId/dislike",
   auth,
   validationResource(likeSchema),
   dislikePost
 );
 feedRoute.post(
-  "/posts/:postId/comment",
+  "/:postId/comment",
   auth,
   validationResource(createCommentSchema),
   commentPost
 );
 feedRoute.delete(
-  "/posts/delete-comment/:commentId",
+  "/delete-comment/:commentId",
   auth,
   validationResource(deleteCommentSchema),
   deleteCommentPost
 );
 feedRoute.post(
-  "/posts/:postId/share",
+  "/:postId/share",
   auth,
   validationResource(shareSchema),
   sharePost
 );
 feedRoute.delete(
-  "/posts/:postId/share",
+  "/:postId/share",
   auth,
   validationResource(shareSchema),
   unSharePost

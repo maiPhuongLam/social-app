@@ -18,8 +18,9 @@ const cloudinary_1 = __importDefault(require("cloudinary"));
 const fs_1 = require("fs");
 const config_1 = __importDefault(require("../config"));
 class ProfileService {
-    constructor(userRepository) {
+    constructor(userRepository, cacheService) {
         this.userRepository = userRepository;
+        this.cacheService = cacheService;
         cloudinary_1.default.v2.config({
             cloud_name: config_1.default.cloudinary.cloud_name,
             api_key: config_1.default.cloudinary.api_key,
@@ -29,10 +30,16 @@ class ProfileService {
     }
     getProfile(id) {
         return __awaiter(this, void 0, void 0, function* () {
+            const cache = yield this.cacheService.getData(`profiles:${id}`);
+            if (cache.data) {
+                console.log("Cache data success");
+                return cache;
+            }
             const userProfile = yield this.userRepository.findUserById(id);
             if (!userProfile) {
                 return (0, formate_data_1.formateData)(false, 404, "User not found", null);
             }
+            yield this.cacheService.setData(`profiles:${id}`, 3600, userProfile);
             return (0, formate_data_1.formateData)(true, 200, "Get Profile success", Object.assign(Object.assign({}, userProfile), { dateOfBirth: userProfile.dateOfBirth.toLocaleDateString() }));
         });
     }
@@ -43,6 +50,7 @@ class ProfileService {
                 return (0, formate_data_1.formateData)(false, 404, "User not found", null);
             }
             const updatedUser = yield this.userRepository.updateUser(id, input);
+            yield this.cacheService.setData(`profiles:${id}`, 3600, updatedUser);
             return (0, formate_data_1.formateData)(true, 200, "Get Profile success", updatedUser);
         });
     }
@@ -52,7 +60,6 @@ class ProfileService {
             if (!userProfile) {
                 return (0, formate_data_1.formateData)(false, 404, "User not found", null);
             }
-            console.log(userProfile.avatarPublicId);
             if (userProfile.avatar && userProfile.avatarPublicId) {
                 yield cloudinary_1.default.v2.uploader.destroy(userProfile.avatarPublicId, {
                     invalidate: true,
@@ -72,12 +79,12 @@ class ProfileService {
                     },
                 ],
             });
-            console.log(resCloudinary);
             (0, fs_1.unlinkSync)(file.path);
             const data = yield this.userRepository.updateUser(id, {
                 avatar: resCloudinary.secure_url,
                 avatarPublicId: resCloudinary.public_id,
             });
+            yield this.cacheService.setData(`profiles:${id}`, 3600, data);
             return (0, formate_data_1.formateData)(true, 200, "Upload avatar success", data);
         });
     }

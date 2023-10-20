@@ -25,8 +25,17 @@ export const createPost = async (
 ) => {
   try {
     const body = <CreatPostDto["body"]>req.body;
+    const { authorId, published } = body;
+    const image = req.file as Express.Multer.File;
     const { isSuccess, statusCode, message, data } =
-      await feedService.createPost(body);
+      await feedService.createPost(
+        {
+          ...body,
+          authorId: Number(authorId),
+          published: JSON.parse(published),
+        },
+        image
+      );
 
     if (!isSuccess) {
       return new HttpException(statusCode, message);
@@ -69,6 +78,7 @@ export const getListPosts = async (
   next: NextFunction
 ) => {
   try {
+    console.log(0);
     const { isSuccess, statusCode, message, data } =
       await feedService.getPosts();
 
@@ -92,8 +102,17 @@ export const updatePost = async (
   try {
     const { id } = req.params;
     const body = <UpdatePostDto["body"]>req.body;
+    const { published } = body;
+    const image = req.file as Express.Multer.File;
     const { isSuccess, statusCode, message, data } =
-      await feedService.updatePost(parseInt(id), body);
+      await feedService.updatePost(
+        parseInt(id),
+        {
+          ...body,
+          published: published ? JSON.parse(published) : undefined,
+        },
+        image
+      );
 
     if (!isSuccess) {
       throw new HttpException(statusCode, message);

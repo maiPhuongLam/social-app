@@ -84,9 +84,13 @@ class UserReposotory {
     }
     findUserById(id) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (!id) {
+                return null;
+            }
             return yield index_1.prisma.user.findUnique({
                 where: { id },
                 select: {
+                    _count: true,
                     id: true,
                     email: true,
                     name: true,
@@ -97,6 +101,28 @@ class UserReposotory {
                     avatarPublicId: true,
                     phone: true,
                     createdAt: true,
+                    followedBy: {
+                        select: {
+                            following: {
+                                select: {
+                                    _count: true,
+                                    id: true,
+                                    name: true,
+                                },
+                            },
+                        },
+                    },
+                    following: {
+                        select: {
+                            following: {
+                                select: {
+                                    _count: true,
+                                    id: true,
+                                    name: true,
+                                },
+                            },
+                        },
+                    },
                 },
             });
         });
@@ -115,18 +141,32 @@ class UserReposotory {
     }
     updateUser(id, data) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (!id) {
+                return null;
+            }
             return yield index_1.prisma.user.update({
                 where: { id },
                 data: Object.assign(Object.assign({}, data), { updatedAt: new Date(Date.now()) }),
                 select: {
                     id: true,
+                    email: true,
+                    name: true,
+                    type: true,
+                    gender: true,
+                    dateOfBirth: true,
                     avatar: true,
+                    avatarPublicId: true,
+                    phone: true,
+                    createdAt: true,
                 },
             });
         });
     }
     removeUser(id) {
         return __awaiter(this, void 0, void 0, function* () {
+            if (!id) {
+                return null;
+            }
             return yield index_1.prisma.user.delete({ where: { id } });
         });
     }

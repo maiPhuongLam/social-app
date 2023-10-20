@@ -10,6 +10,7 @@ import swaggerSpec from "./swagger";
 import followRoute from "./routes/follow.route";
 
 export const expressApp = (app: Express) => {
+  console.log(swaggerSpec);
   app.use(cors({ origin: "*" }));
   app.use(express.json());
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));

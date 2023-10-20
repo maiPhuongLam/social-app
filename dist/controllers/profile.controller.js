@@ -17,7 +17,9 @@ const profile_service_1 = require("../services/profile.service");
 const user_repository_1 = require("../repositories/user.repository");
 const HttpResponse_1 = __importDefault(require("../HttpResponse"));
 const HttpException_1 = __importDefault(require("../HttpException"));
-const profileService = new profile_service_1.ProfileService(new user_repository_1.UserReposotory());
+const cache_service_1 = require("../services/cache.service");
+const ioredis_1 = require("ioredis");
+const profileService = new profile_service_1.ProfileService(new user_repository_1.UserReposotory(), new cache_service_1.CacheService(new ioredis_1.Redis()));
 const getProfile = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id } = req.params;

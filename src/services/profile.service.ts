@@ -68,7 +68,7 @@ export class ProfileService {
     }
 
     const resCloudinary = await cloudinary.v2.uploader.upload(file.path, {
-      folder: config.cloudinary.folderPath,
+      folder: `${config.cloudinary.folderPath}/posts/`,
       public_id: `${config.cloudinary.publicId_prefix}${Date.now()}`,
       transformation: [
         {

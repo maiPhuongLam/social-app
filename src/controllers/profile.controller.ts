@@ -69,7 +69,7 @@ export const uploadAvatar = async (
   try {
     const { id } = req.params;
     const file = req.file as Express.Multer.File;
-
+    console.log(file);
     if (!file) {
       throw new HttpException(400, "file not found");
     }

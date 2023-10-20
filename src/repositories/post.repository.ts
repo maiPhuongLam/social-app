@@ -7,8 +7,11 @@ export class PostRepository {
   private select = {
     _count: true,
     id: true,
-    title: true,
     content: true,
+    image: true,
+    imagePublicId: true,
+    link: true,
+    location: true,
     author: {
       select: {
         id: true,
@@ -91,41 +94,7 @@ export class PostRepository {
   async deletePost(id: number) {
     return await prisma.post.delete({
       where: { id },
-      select: {
-        _count: true,
-        id: true,
-        title: true,
-        content: true,
-        author: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        published: true,
-        likes: {
-          select: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-          },
-        },
-        comments: {
-          select: {
-            user: {
-              select: {
-                id: true,
-                comments: true,
-              },
-            },
-          },
-        },
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: this.select,
     });
   }
 }

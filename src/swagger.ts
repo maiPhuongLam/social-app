@@ -1,4 +1,4 @@
-import swagger from "swagger-jsdoc";
+import swaggerjsdoc from "swagger-jsdoc";
 
 const options = {
   definition: {
@@ -7,14 +7,21 @@ const options = {
       title: "Social-app",
       version: "1.0.0",
       description: "A Social-app API documentation using Swagger",
+      contact: {
+        name: "Mai Phuong lam",
+        email: "maiphuonglambh.2002@gmail.com",
+      },
     },
-    server: {
-      url: "http://localhost:8000",
-    },
+    servers: [
+      {
+        url: "http://localhost:8000/",
+        description: "Development server",
+      },
+    ],
   },
   apis: [`./routes/*.ts`], // Specify the path to your API route files
 };
 
-const swaggerSpec = swagger(options);
+const swaggerSpec = swaggerjsdoc(options);
 
 export default swaggerSpec;

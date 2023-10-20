@@ -75,12 +75,6 @@ class AuthService {
             if (!user) {
                 return (0, formate_data_1.formateData)(false, 404, "Email incorrect", null);
             }
-            // const otpStorage: { [key: string]: { secret: string; expiresAt: number } } = {};
-            // const secret = speakeasy.generateSecret()
-            // otpStorage[email] = {
-            //   secret: secret.base32,
-            //   expiresAt: Date.now() + 60000,
-            // };
             const otp = Math.floor(Math.random() * 900000) + 100000;
             const otpExpiryTime = new Date();
             otpExpiryTime.setMinutes(otpExpiryTime.getMinutes() + 1);

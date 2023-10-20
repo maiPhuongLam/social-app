@@ -9,19 +9,17 @@ const PORT = +config.port! | 8000;
 dotenv.config();
 
 const startApp = async (app: Express) => {
-  expressApp(app);
-
-  app.listen(PORT, () => {
-    console.log(`Server is running on port: ${PORT}`);
-  });
-};
-
-startApp(express())
-  .then(async () => {
+  try {
+    expressApp(app);
     await prisma.$connect();
-  })
-  .catch(async (e) => {
-    console.error(e);
+    app.listen(PORT, () => {
+      console.log(`Server is running on port: ${PORT}`);
+    });
+  } catch (error) {
+    console.error(error);
     await prisma.$disconnect();
     process.exit(1);
-  });
+  }
+};
+
+startApp(express());

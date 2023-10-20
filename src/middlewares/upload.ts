@@ -10,8 +10,14 @@ export const upload = multer({
     },
   }),
   fileFilter: (req, file: Express.Multer.File, cb: any) => {
+    console.log(req.file);
     // Define the allowed file types
-    const allowedFileTypes = ["image/jpeg", "image/png", "image/gif"];
+    const allowedFileTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "image/jpg  ",
+    ];
 
     // Check if the uploaded file's MIME type is in the allowed types array
     if (allowedFileTypes.includes(file.mimetype)) {
@@ -20,4 +26,4 @@ export const upload = multer({
       cb(null, false); // Reject the file
     }
   },
-}).single("avatar");
+}).single("image");
