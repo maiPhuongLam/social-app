@@ -1,10 +1,10 @@
-import config from "../config";
-import { CreatePostInput, UpdatePostInput } from "../custom-type";
+import config from "../../config";
+import { CreatePostInput, UpdatePostInput } from "../../custom-type";
 import { CommentRepository } from "../repositories/comment.repository";
 import { LikeRepository } from "../repositories/like.repository";
 import { PostRepository } from "../repositories/post.repository";
 import { SharedPostRepository } from "../repositories/sharedPost.repository";
-import { formateData } from "../utils/formate-data";
+import { formateData } from "../../utils/formate-data";
 import { CacheService } from "./cache.service";
 import cloudinary from "cloudinary";
 import { unlinkSync } from "fs";
@@ -145,7 +145,9 @@ export class FeedService {
             },
           ],
         });
+
         unlinkSync(image.path);
+
         const post = await this.postRepository.updatePost(id, {
           ...input,
           image: resCloudinary.secure_url,

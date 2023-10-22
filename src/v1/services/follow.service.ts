@@ -1,9 +1,9 @@
-import { UpdateUserInput } from "../custom-type";
+import { UpdateUserInput } from "../../custom-type";
 import { UserReposotory } from "../repositories/user.repository";
-import { formateData } from "../utils/formate-data";
+import { formateData } from "../../utils/formate-data";
 import cloudinary from "cloudinary";
 import { unlinkSync } from "fs";
-import config from "../config";
+import config from "../../config";
 import { CacheService } from "./cache.service";
 import { FollowRepository } from "../repositories/follow.repository";
 

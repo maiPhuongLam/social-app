@@ -1,8 +1,8 @@
 import { NextFunction, Response, Request } from "express";
 import { AuthService } from "../services/auth.service";
-import { UserTypes } from "../custom-type";
-import HttpResponse from "../HttpResponse";
-import HttpException from "../HttpException";
+import { UserTypes } from "../../custom-type";
+import HttpResponse from "../../HttpResponse";
+import HttpException from "../../HttpException";
 import {
   CheckOtpDto,
   LoginDto,

@@ -1,8 +1,8 @@
 import { NextFunction, Response, Request } from "express";
 import { ProfileService } from "../services/profile.service";
 import { UserReposotory } from "../repositories/user.repository";
-import HttpResponse from "../HttpResponse";
-import HttpException from "../HttpException";
+import HttpResponse from "../../HttpResponse";
+import HttpException from "../../HttpException";
 import {
   GetProfileDto,
   UpdateProfileDto,

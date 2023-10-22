@@ -1,5 +1,5 @@
-import { CreatePostInput, UpdatePostInput } from "../custom-type";
-import { prisma } from "../index";
+import { CreatePostInput, UpdatePostInput } from "../../custom-type";
+import { prisma } from "../../index";
 
 export class PostRepository {
   constructor() {}

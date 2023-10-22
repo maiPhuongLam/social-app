@@ -1,4 +1,4 @@
-import { User } from "@prisma/client";
+import { Address, User } from "@prisma/client";
 
 export interface CustomRequest extends Request {
   userId: number; // Change the type to match your actual userId type
@@ -73,6 +73,18 @@ export type UpdatePostInput = {
   location?: string;
   link?: string;
   published?: boolean;
+};
+
+export type CreateAddressInput = {
+  userId: number;
+  city: string;
+  country: string;
+};
+
+export type UpdateAddressInput = {
+  city?: string;
+  country?: string;
+  userId: number;
 };
 
 // export type PostQuery = {

@@ -1,6 +1,6 @@
 import { NextFunction, Response, Request } from "express";
-import HttpResponse from "../HttpResponse";
-import HttpException from "../HttpException";
+import HttpResponse from "../../HttpResponse";
+import HttpException from "../../HttpException";
 import { FollowService } from "../services/follow.service";
 import { FollowRepository } from "../repositories/follow.repository";
 import { UserReposotory } from "../repositories/user.repository";

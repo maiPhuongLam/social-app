@@ -1,5 +1,5 @@
-import { prisma } from "../index";
-import { CreateUserInput, UserQuery, UpdateUserInput } from "../custom-type";
+import { prisma } from "../../index";
+import { CreateUserInput, UserQuery, UpdateUserInput } from "../../custom-type";
 export class UserReposotory {
   constructor() {}
 

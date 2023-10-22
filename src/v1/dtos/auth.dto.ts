@@ -1,5 +1,5 @@
 import { TypeOf, date, number, object, string, z } from "zod";
-import { Gender } from "../custom-type";
+import { Gender } from "../../custom-type";
 
 const loginSchema = object({
   body: object({

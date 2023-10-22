@@ -1,8 +1,8 @@
 import { NextFunction, Response, Request } from "express";
 import { FeedService } from "../services/feed.service";
 import { PostRepository } from "../repositories/post.repository";
-import HttpResponse from "../HttpResponse";
-import HttpException from "../HttpException";
+import HttpResponse from "../../HttpResponse";
+import HttpException from "../../HttpException";
 import { CreatPostDto, UpdatePostDto } from "../dtos/post.dto";
 import { CacheService } from "../services/cache.service";
 import Redis from "ioredis";

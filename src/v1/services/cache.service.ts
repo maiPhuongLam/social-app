@@ -1,6 +1,6 @@
 import Redis from "ioredis";
-import { formateData } from "../utils/formate-data";
-import { FormateData } from "../custom-type";
+import { formateData } from "../../utils/formate-data";
+import { FormateData } from "../../custom-type";
 export class CacheService {
   constructor(private readonly redis: Redis) {}
 
