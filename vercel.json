@@ -5,8 +5,5 @@
     { "src": "package.json", "use": "@vercel/node" },
     { "src": "prisma/schema.prisma", "use": "@prisma/cli" }
   ],
-  "routes": [{ "src": "/(.*)", "dest": "/src/index.ts" }],
-  "env": {
-    "DATABASE_URL": "@prisma_url"
-  }
+  "routes": [{ "src": "/(.*)", "dest": "/src/index.ts" }]
 }
