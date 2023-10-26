@@ -3,7 +3,7 @@ import { prisma } from "../../index";
 export class SharedPostRepository {
   constructor() {}
 
-  async createSharedPost(userId: number, postId: number) {
+  public async createSharedPost(userId: number, postId: number) {
     if (!userId || !postId) {
       return null;
     }
@@ -16,7 +16,7 @@ export class SharedPostRepository {
     });
   }
 
-  async getSharedPost(userId: number, postId: number) {
+  public async getSharedPost(userId: number, postId: number) {
     if (!userId || !postId) {
       return null;
     }
@@ -31,7 +31,7 @@ export class SharedPostRepository {
     });
   }
 
-  async getPostsUserShare(userId: number) {
+  public async getPostsUserShare(userId: number) {
     if (!userId) {
       return null;
     }
@@ -50,7 +50,7 @@ export class SharedPostRepository {
     });
   }
 
-  async getUserSharingPost(postId: number) {
+  public async getUserSharingPost(postId: number) {
     if (!postId) {
       return null;
     }
@@ -70,7 +70,7 @@ export class SharedPostRepository {
     });
   }
 
-  async deleteSharedPost(userId: number, postId: number) {
+  public async deleteSharedPost(userId: number, postId: number) {
     if (!userId || !postId) {
       return null;
     }

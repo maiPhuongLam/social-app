@@ -4,14 +4,14 @@ import { prisma } from "../../index";
 export class AddressRepository {
   constructor() {}
 
-  async createAddress(createAddressInput: CreateAddressInput) {
+  public async createAddress(createAddressInput: CreateAddressInput) {
     if (!createAddressInput.userId) {
       return null;
     }
     return await prisma.address.create({ data: createAddressInput });
   }
 
-  async updateAddress(
+  public async updateAddress(
     addressId: number,
     updateAddressInput: UpdateAddressInput
   ) {
@@ -25,18 +25,18 @@ export class AddressRepository {
     });
   }
 
-  async getAddresesByUserId(userId: number) {
+  public async getAddresesByUserId(userId: number) {
     return await prisma.address.findMany({ where: { userId } });
   }
 
-  async getAddressById(id: number) {
+  public async getAddressById(id: number) {
     if (!id) {
       return null;
     }
     return await prisma.address.findUnique({ where: { id } });
   }
 
-  async deleteAddress(id: number) {
+  public async deleteAddress(id: number) {
     if (!id) {
       return null;
     }

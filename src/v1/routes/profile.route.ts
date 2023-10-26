@@ -1,16 +1,12 @@
-import express from "express";
+import express, { Express } from "express";
 import { validationResource } from "../middlewares/validation-resource";
 import {
   getProfileSchema,
   updateProfileSchema,
   uploadAvatarSchema,
 } from "../dtos/profile.dto";
-import {
-  getProfile,
-  updateProfile,
-  uploadAvatar,
-} from "../controllers/profile.controller";
 import { auth } from "../middlewares/auth";
+import profileController from "../controllers/profile.controller";
 
 const profileRoute = express.Router();
 
@@ -18,20 +14,24 @@ profileRoute.get(
   "/:id",
   auth,
   validationResource(getProfileSchema),
-  getProfile
+  profileController.getProfile
 );
 profileRoute.put(
   "/:id",
   auth,
   validationResource(updateProfileSchema),
-  updateProfile
+  profileController.updateProfile
 );
 
 profileRoute.put(
   "/:id/avatar",
   auth,
   validationResource(uploadAvatarSchema),
-  uploadAvatar
+  profileController.uploadAvatar
 );
+
+class ProfileRoute {
+  private app: Express = express();
+}
 
 export default profileRoute;

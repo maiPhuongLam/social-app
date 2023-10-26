@@ -3,7 +3,7 @@ import { CreateUserInput, UserQuery, UpdateUserInput } from "../../custom-type";
 export class UserReposotory {
   constructor() {}
 
-  async createUser(data: CreateUserInput) {
+  public async createUser(data: CreateUserInput) {
     return await prisma.user.create({
       data: {
         ...data,
@@ -23,7 +23,7 @@ export class UserReposotory {
     });
   }
 
-  async findAllUser() {
+  public async findAllUser() {
     return await prisma.user.findMany({
       select: {
         id: true,
@@ -38,7 +38,7 @@ export class UserReposotory {
     });
   }
 
-  async findUserByQuery(query: UserQuery) {
+  public async findUserByQuery(query: UserQuery) {
     return await prisma.user.findMany({
       where: query,
       select: {
@@ -54,7 +54,7 @@ export class UserReposotory {
     });
   }
 
-  async findUserByEmail(email: string) {
+  public async findUserByEmail(email: string) {
     return await prisma.user.findFirst({
       where: { email },
       select: {
@@ -72,7 +72,7 @@ export class UserReposotory {
     });
   }
 
-  async findUserById(id: number) {
+  public async findUserById(id: number) {
     if (!id) {
       return null;
     }
@@ -116,7 +116,7 @@ export class UserReposotory {
     });
   }
 
-  async findUserByOtp(otp: number) {
+  public async findUserByOtp(otp: number) {
     return await prisma.user.findFirst({
       where: { otp },
       orderBy: { updatedAt: "desc" },
@@ -127,7 +127,7 @@ export class UserReposotory {
     });
   }
 
-  async updateUser(id: number, data: UpdateUserInput) {
+  public async updateUser(id: number, data: UpdateUserInput) {
     if (!id) {
       return null;
     }
@@ -152,7 +152,7 @@ export class UserReposotory {
     });
   }
 
-  async removeUser(id: number) {
+  public async removeUser(id: number) {
     if (!id) {
       return null;
     }

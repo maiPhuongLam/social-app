@@ -3,15 +3,18 @@ import { prisma } from "../../index";
 export class LikeRepository {
   constructor() {}
 
-  async createLike(userId: number, postId: number) {
+  public async createLike(userId: number, postId: number) {
+    if (!userId || !postId) {
+      return null;
+    }
     return await prisma.like.create({ data: { userId, postId } });
   }
 
-  async getLikes() {
+  public async getLikes() {
     return await prisma.like.findMany();
   }
 
-  async getLike(userId: number, postId: number) {
+  public async getLike(userId: number, postId: number) {
     if (!userId || !postId) {
       return null;
     }
@@ -25,7 +28,7 @@ export class LikeRepository {
     });
   }
 
-  async deleteLike(userId: number, postId: number) {
+  public async deleteLike(userId: number, postId: number) {
     if (!userId || !postId) {
       return null;
     }

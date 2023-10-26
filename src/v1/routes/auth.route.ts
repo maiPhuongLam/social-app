@@ -1,12 +1,5 @@
 import express from "express";
-import {
-  checkOtp,
-  login,
-  refreshToken,
-  register,
-  forgotPassword,
-  sendOtp,
-} from "../controllers/auth.controller";
+import authController from "../controllers/auth.controller";
 import { validationResource } from "../middlewares/validation-resource";
 import {
   loginSchema,
@@ -18,15 +11,31 @@ import {
 
 const authRouter = express.Router();
 
-authRouter.post("/register", validationResource(registerSchema), register);
-authRouter.post("/login", validationResource(loginSchema), login);
-authRouter.put("/refresh-token", refreshToken);
-authRouter.put("/otp/send", validationResource(sendOtpSchema), sendOtp);
-authRouter.post("/otp/check", validationResource(checkOtpSchema), checkOtp);
+authRouter.post(
+  "/register",
+  validationResource(registerSchema),
+  authController.register
+);
+authRouter.post(
+  "/login",
+  validationResource(loginSchema),
+  authController.login
+);
+authRouter.put("/refresh-token", authController.refreshToken);
+authRouter.put(
+  "/otp/send",
+  validationResource(sendOtpSchema),
+  authController.sendOtp
+);
+authRouter.post(
+  "/otp/check",
+  validationResource(checkOtpSchema),
+  authController.checkOtp
+);
 authRouter.put(
   "/forgot-password/:id",
   validationResource(resetPasswordSchema),
-  forgotPassword
+  authController.forgotPassword
 );
 
 export default authRouter;

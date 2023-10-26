@@ -1,62 +1,43 @@
 import { NextFunction, Response, Request } from "express";
 import HttpResponse from "../../HttpResponse";
 import HttpException from "../../HttpException";
-import { FollowService } from "../services/follow.service";
-import { FollowRepository } from "../repositories/follow.repository";
-import { UserReposotory } from "../repositories/user.repository";
-import { CacheService } from "../services/cache.service";
-import { Redis } from "ioredis";
+import followService, { FollowService } from "../services/follow.service";
 
-const followService = new FollowService(
-  new FollowRepository(),
-  new UserReposotory(),
-  new CacheService(new Redis())
-);
-
-export const follow = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { followedId } = req.params;
-    const followingId = req.userId!;
-    const { isSuccess, statusCode, message, data } = await followService.follow(
-      parseInt(followedId),
-      followingId
-    );
-
-    if (!isSuccess) {
-      throw new HttpException(statusCode, message);
-    }
-
-    return res
-      .status(statusCode)
-      .json(new HttpResponse(statusCode, message, data));
-  } catch (error) {
-    next(error);
+class FollowController {
+  constructor(private followService: FollowService) {
+    this.follow = this.follow.bind(this);
+    this.unfollow = this.unfollow.bind(this);
   }
-};
 
-export const unfollow = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { followedId } = req.params;
-    const followingId = req.userId!;
-    const { isSuccess, statusCode, message, data } =
-      await followService.unfollow(parseInt(followedId), followingId);
+  public async follow(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { followedId } = req.params;
+      const followingId = req.userId!;
+      const { isSuccess, statusCode, message, data } =
+        await this.followService.follow(parseInt(followedId), followingId);
 
-    if (!isSuccess) {
-      throw new HttpException(statusCode, message);
+      return res
+        .status(statusCode)
+        .json(new HttpResponse(isSuccess, statusCode, message, data));
+    } catch (error) {
+      next(error);
     }
-
-    return res
-      .status(statusCode)
-      .json(new HttpResponse(statusCode, message, data));
-  } catch (error) {
-    next(error);
   }
-};
+
+  public async unfollow(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { followedId } = req.params;
+      const followingId = req.userId!;
+      const { isSuccess, statusCode, message, data } =
+        await this.followService.unfollow(parseInt(followedId), followingId);
+
+      return res
+        .status(statusCode)
+        .json(new HttpResponse(isSuccess, statusCode, message, data));
+    } catch (error) {
+      next(error);
+    }
+  }
+}
+
+export default new FollowController(followService);

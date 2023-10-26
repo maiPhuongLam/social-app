@@ -22,4 +22,15 @@ export default {
     accessKey: process.env.JWT_ACCESS_SECRET_KEY!,
     refreshKey: process.env.JWT_REFRESH_SECRET_KEY!,
   },
+  facebook: {
+    app_id: process.env.FACEBOOK_APP_ID,
+    app_secret: process.env.FACEBOOK_APP_SECRET,
+    app_callback_url: "http://localhost:3000/auth/facebook/callback",
+  },
+  redis: {
+    host: process.env.REDIS_HOST!,
+    port: +process.env.REDIS_PORT!,
+    password: process.env.REDIS_PASSWORD!,
+    uri: process.env.REDIS_URI,
+  },
 };

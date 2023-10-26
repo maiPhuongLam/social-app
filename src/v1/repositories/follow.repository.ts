@@ -3,7 +3,7 @@ import { prisma } from "../../index";
 export class FollowRepository {
   constructor() {}
 
-  async getFollow(followedId: number, followingId: number) {
+  public async getFollow(followedId: number, followingId: number) {
     if (!followedId || !followingId) {
       return null;
     }
@@ -18,7 +18,7 @@ export class FollowRepository {
     });
   }
 
-  async getFollowers(userId: number) {
+  public async getFollowers(userId: number) {
     if (!userId) {
       return null;
     }
@@ -37,7 +37,7 @@ export class FollowRepository {
     });
   }
 
-  async getFollowerings(userId: number) {
+  public async getFollowerings(userId: number) {
     if (!userId) {
       return null;
     }
@@ -56,11 +56,11 @@ export class FollowRepository {
     });
   }
 
-  async createFollow(followedId: number, followingId: number) {
+  public async createFollow(followedId: number, followingId: number) {
     return await prisma.follow.create({ data: { followedId, followingId } });
   }
 
-  async deleteFollow(followedId: number, followingId: number) {
+  public async deleteFollow(followedId: number, followingId: number) {
     return await prisma.follow.delete({
       where: {
         followedId_followingId: {

@@ -2,109 +2,79 @@ import { NextFunction, Response, Request } from "express";
 import { UserReposotory } from "../repositories/user.repository";
 import HttpResponse from "../../HttpResponse";
 import HttpException from "../../HttpException";
-import { CacheService } from "../services/cache.service";
-import { Redis } from "ioredis";
-import { AddressService } from "../services/address.service";
-import { AddressRepository } from "../repositories/address.repository";
+import addressService, { AddressService } from "../services/address.service";
 import { CreateAddressDto, UpdateAddressDto } from "../dtos/address.dto";
 
-const addressService = new AddressService(
-  new UserReposotory(),
-  new AddressRepository(),
-  new CacheService(new Redis())
-);
-
-export const getAddreses = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { userId } = req.params;
-    const { isSuccess, statusCode, message, data } =
-      await addressService.getAddressesByUserId(parseInt(userId));
-
-    if (!isSuccess) {
-      throw new HttpException(statusCode, message);
-    }
-
-    return res
-      .status(statusCode)
-      .json(new HttpResponse(statusCode, message, data));
-  } catch (error) {
-    next(error);
+class AddressController {
+  constructor(private addressService: AddressService) {
+    this.getAddreses = this.getAddreses.bind(this);
+    this.createAddress = this.createAddress.bind(this);
+    this.updateAddress = this.updateAddress.bind(this);
+    this.deleteAddress = this.deleteAddress.bind(this);
   }
-};
 
-export const createAddress = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const userId = req.userId!;
-    const body = <CreateAddressDto["body"]>req.body;
-    const { isSuccess, statusCode, message, data } =
-      await addressService.createAddress({ userId, ...body });
+  public async getAddreses(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { userId } = req.params;
+      const { isSuccess, statusCode, message, data } =
+        await this.addressService.getAddressesByUserId(parseInt(userId));
 
-    if (!isSuccess) {
-      throw new HttpException(statusCode, message);
+      return res
+        .status(statusCode)
+        .json(new HttpResponse(isSuccess, statusCode, message, data));
+    } catch (error) {
+      next(error);
     }
-
-    return res
-      .status(statusCode)
-      .json(new HttpResponse(statusCode, message, data));
-  } catch (error) {
-    next(error);
   }
-};
 
-export const updateAddress = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { addressId } = req.params;
-    const body = <UpdateAddressDto["body"]>req.body;
-    const userId = req.userId!;
-    const { isSuccess, statusCode, message, data } =
-      await addressService.updateAddress(parseInt(addressId), {
-        userId,
-        ...body,
-      });
+  public async createAddress(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = req.userId!;
+      const body = <CreateAddressDto["body"]>req.body;
+      const { isSuccess, statusCode, message, data } =
+        await this.addressService.createAddress({ userId, ...body });
 
-    if (!isSuccess) {
-      throw new HttpException(statusCode, message);
+      return res
+        .status(statusCode)
+        .json(new HttpResponse(isSuccess, statusCode, message, data));
+    } catch (error) {
+      next(error);
     }
-
-    return res
-      .status(statusCode)
-      .json(new HttpResponse(statusCode, message, data));
-  } catch (error) {
-    next(error);
   }
-};
 
-export const deleteAddress = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { addressId } = req.params;
-    const userId = req.userId!;
-    const { isSuccess, statusCode, message, data } =
-      await addressService.deleteAddress(userId, parseInt(addressId));
+  public async updateAddress(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { addressId } = req.params;
+      const body = <UpdateAddressDto["body"]>req.body;
+      const userId = req.userId!;
+      const { isSuccess, statusCode, message, data } =
+        await this.addressService.updateAddress(parseInt(addressId), {
+          userId,
+          ...body,
+        });
 
-    if (!isSuccess) {
-      throw new HttpException(statusCode, message);
+      return res
+        .status(statusCode)
+        .json(new HttpResponse(isSuccess, statusCode, message, data));
+    } catch (error) {
+      next(error);
     }
-
-    return res
-      .status(statusCode)
-      .json(new HttpResponse(statusCode, message, data));
-  } catch (error) {
-    next(error);
   }
-};
+
+  public async deleteAddress(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { addressId } = req.params;
+      const userId = req.userId!;
+      const { isSuccess, statusCode, message, data } =
+        await this.addressService.deleteAddress(userId, parseInt(addressId));
+
+      return res
+        .status(statusCode)
+        .json(new HttpResponse(isSuccess, statusCode, message, data));
+    } catch (error) {
+      next(error);
+    }
+  }
+}
+
+export default new AddressController(addressService);

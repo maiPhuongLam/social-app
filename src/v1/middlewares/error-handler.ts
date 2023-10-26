@@ -11,13 +11,13 @@ const errorHandler = (
   if (error instanceof HttpException) {
     return res
       .status(error.statusCode)
-      .json(new HttpResponse(error.statusCode, error.message, null));
+      .json(new HttpResponse(false, error.statusCode, error.message, null));
   } else {
     // Handle generic server errors
     console.error(error);
     return res
       .status(500)
-      .json(new HttpResponse(500, "Something went wrong", null));
+      .json(new HttpResponse(false, 500, "Something went wrong", null));
   }
 };
 

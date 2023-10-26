@@ -3,25 +3,28 @@ import { prisma } from "../../index";
 export class CommentRepository {
   constructor() {}
 
-  async createComment(userId: number, postId: number, content: string) {
+  public async createComment(userId: number, postId: number, content: string) {
     if (!userId || !postId) {
       return null;
     }
     return await prisma.comment.create({ data: { userId, postId, content } });
   }
 
-  async getComents() {
+  public async getComents() {
     return await prisma.comment.findMany();
   }
 
-  async getComment(id: number) {
+  public async getComment(id: number) {
     if (!id) {
       return null;
     }
-    return await prisma.comment.findUnique({ where: { id } });
+    return await prisma.comment.findUnique({
+      where: { id },
+      select: { postId: true, userId: true, content: true },
+    });
   }
 
-  async deleteComment(id: number) {
+  public async deleteComment(id: number) {
     if (!id) {
       return null;
     }

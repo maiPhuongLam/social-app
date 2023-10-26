@@ -7,36 +7,35 @@ import {
   getAddressSchema,
   updateAddressSchema,
 } from "../dtos/address.dto";
-import {
-  createAddress,
-  deleteAddress,
-  getAddreses,
-  updateAddress,
-} from "../controllers/address.controller";
+import createAddress from "../controllers/address.controller";
 
 const addressRoute = express.Router();
 
-addressRoute.get("/:userId", validationResource(getAddressSchema), getAddreses);
+addressRoute.get(
+  "/:userId",
+  validationResource(getAddressSchema),
+  createAddress.getAddreses
+);
 
 addressRoute.post(
   "/",
   auth,
   validationResource(createAddressSchema),
-  createAddress
+  createAddress.createAddress
 );
 
 addressRoute.put(
   "/:addressId",
   auth,
   validationResource(updateAddressSchema),
-  updateAddress
+  createAddress.updateAddress
 );
 
 addressRoute.delete(
   "/:addressId",
   auth,
   validationResource(deleteAddressSchema),
-  deleteAddress
+  createAddress.deleteAddress
 );
 
 export default addressRoute;

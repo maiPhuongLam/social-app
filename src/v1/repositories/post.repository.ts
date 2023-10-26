@@ -54,7 +54,7 @@ export class PostRepository {
     updatedAt: true,
   };
 
-  async findPosts() {
+  public async findPosts() {
     return await prisma.post.findMany({
       where: {
         published: true,
@@ -63,7 +63,7 @@ export class PostRepository {
     });
   }
 
-  async findPostById(id: number) {
+  public async findPostById(id: number) {
     if (!id) {
       return null;
     }
@@ -73,14 +73,14 @@ export class PostRepository {
     });
   }
 
-  async createPost(data: CreatePostInput) {
+  public async createPost(data: CreatePostInput) {
     return await prisma.post.create({
       data,
       select: this.select,
     });
   }
 
-  async updatePost(id: number, data: UpdatePostInput) {
+  public async updatePost(id: number, data: UpdatePostInput) {
     if (!id) {
       return null;
     }
@@ -91,7 +91,7 @@ export class PostRepository {
     });
   }
 
-  async deletePost(id: number) {
+  public async deletePost(id: number) {
     return await prisma.post.delete({
       where: { id },
       select: this.select,

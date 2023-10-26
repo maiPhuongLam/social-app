@@ -1,90 +1,64 @@
 import { NextFunction, Response, Request } from "express";
-import { ProfileService } from "../services/profile.service";
-import { UserReposotory } from "../repositories/user.repository";
+import profileService, { ProfileService } from "../services/profile.service";
 import HttpResponse from "../../HttpResponse";
 import HttpException from "../../HttpException";
-import {
-  GetProfileDto,
-  UpdateProfileDto,
-  UploadAvatarDto,
-} from "../dtos/profile.dto";
-import { CacheService } from "../services/cache.service";
-import { Redis } from "ioredis";
+import { UpdateProfileDto } from "../dtos/profile.dto";
 
-const profileService = new ProfileService(
-  new UserReposotory(),
-  new CacheService(new Redis())
-);
-
-export const getProfile = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { id } = req.params;
-    const { isSuccess, statusCode, message, data } =
-      await profileService.getProfile(+id);
-
-    if (!isSuccess) {
-      throw new HttpException(statusCode, message);
-    }
-
-    return res
-      .status(statusCode)
-      .json(new HttpResponse(statusCode, message, data));
-  } catch (error) {
-    next(error);
+class ProfileController {
+  constructor(private profileService: ProfileService) {
+    this.getProfile = this.getProfile.bind(this);
+    this.updateProfile = this.updateProfile.bind(this);
+    this.uploadAvatar = this.uploadAvatar.bind(this);
   }
-};
 
-export const updateProfile = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { id } = req.params;
-    const updatedField = <UpdateProfileDto["body"]>req.body;
-    const { isSuccess, statusCode, message, data } =
-      await profileService.updateProfile(+id, updatedField);
+  public async getProfile(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const { isSuccess, statusCode, message, data } =
+        await this.profileService.getProfile(+id);
 
-    if (!isSuccess) {
-      throw new HttpException(statusCode, message);
+      return res
+        .status(statusCode)
+        .json(new HttpResponse(isSuccess, statusCode, message, data));
+    } catch (error) {
+      next(error);
     }
-
-    return res
-      .status(statusCode)
-      .json(new HttpResponse(statusCode, message, data));
-  } catch (error) {
-    next(error);
   }
-};
 
-export const uploadAvatar = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { id } = req.params;
-    const file = req.file as Express.Multer.File;
-    console.log(file);
-    if (!file) {
-      throw new HttpException(400, "file not found");
+  public async updateProfile(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const updatedField = <UpdateProfileDto["body"]>req.body;
+      const { isSuccess, statusCode, message, data } =
+        await this.profileService.updateProfile(+id, updatedField);
+
+      return res
+        .status(statusCode)
+        .json(new HttpResponse(isSuccess, statusCode, message, data));
+    } catch (error) {
+      next(error);
     }
-
-    const { isSuccess, statusCode, message, data } =
-      await profileService.uploadAvatar(+id, file);
-
-    if (!isSuccess) {
-      throw new HttpException(statusCode, message);
-    }
-
-    return res
-      .status(statusCode)
-      .json(new HttpResponse(statusCode, message, data));
-  } catch (error) {
-    next(error);
   }
-};
+
+  public async uploadAvatar(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const file = req.file as Express.Multer.File;
+      console.log(file);
+      if (!file) {
+        throw new HttpException(400, "file not found");
+      }
+
+      const { isSuccess, statusCode, message, data } =
+        await this.profileService.uploadAvatar(+id, file);
+
+      return res
+        .status(statusCode)
+        .json(new HttpResponse(isSuccess, statusCode, message, data));
+    } catch (error) {
+      next(error);
+    }
+  }
+}
+
+export default new ProfileController(profileService);

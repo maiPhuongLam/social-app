@@ -19,7 +19,7 @@ export class AuthService {
     this.userRepository = new UserReposotory();
   }
 
-  async login(input: UserLoginInput): Promise<FormateData> {
+  public async login(input: UserLoginInput): Promise<FormateData> {
     const user = await this.userRepository.findUserByEmail(input.email);
 
     if (!user) {
@@ -48,7 +48,7 @@ export class AuthService {
     });
   }
 
-  async register(input: CreateUserInput): Promise<FormateData> {
+  public async register(input: CreateUserInput): Promise<FormateData> {
     const existedUser = await this.userRepository.findUserByEmail(input.email);
 
     if (existedUser) {
@@ -80,7 +80,7 @@ export class AuthService {
     });
   }
 
-  async getNewToken(refreshToken: string) {
+  public async getNewToken(refreshToken: string) {
     const token = await validateToken(refreshToken, config.jwt.refreshKey);
     const newAcessToken = await generateToken(
       { id: token.id, email: token.email },
@@ -92,7 +92,7 @@ export class AuthService {
     });
   }
 
-  async sendOtp(email: string) {
+  public async sendOtp(email: string) {
     const user = await this.userRepository.findUserByEmail(email);
     if (!user) {
       return formateData(false, 404, "Email incorrect", null);
@@ -109,7 +109,7 @@ export class AuthService {
     return formateData(true, 200, "Send otp mail success", null);
   }
 
-  async checkOtp(otp: number) {
+  public async checkOtp(otp: number) {
     const user = await this.userRepository.findUserByOtp(otp);
 
     if (!user) {
@@ -125,7 +125,7 @@ export class AuthService {
     return formateData(true, 200, "Otp is valid", user.id);
   }
 
-  async resetPassword(id: number, password: string) {
+  public async resetPassword(id: number, password: string) {
     const user = await this.userRepository.findUserById(id);
 
     if (!user) {
@@ -138,3 +138,7 @@ export class AuthService {
     return formateData(true, 200, "Reset password success", null);
   }
 }
+
+const authService = new AuthService(new UserReposotory());
+
+export default authService;

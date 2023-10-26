@@ -1,290 +1,213 @@
 import { NextFunction, Response, Request } from "express";
-import { FeedService } from "../services/feed.service";
-import { PostRepository } from "../repositories/post.repository";
+import feedService, { FeedService } from "../services/feed.service";
 import HttpResponse from "../../HttpResponse";
 import HttpException from "../../HttpException";
 import { CreatPostDto, UpdatePostDto } from "../dtos/post.dto";
-import { CacheService } from "../services/cache.service";
-import Redis from "ioredis";
-import { LikeRepository } from "../repositories/like.repository";
-import { CommentRepository } from "../repositories/comment.repository";
-import { SharedPostRepository } from "../repositories/sharedPost.repository";
-const feedService = new FeedService(
-  new PostRepository(),
-  new LikeRepository(),
-  new CommentRepository(),
-  new SharedPostRepository(),
-  new CacheService(new Redis())
-);
-const cacheService = new CacheService(new Redis());
 
-export const createPost = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const body = <CreatPostDto["body"]>req.body;
-    const { authorId, published } = body;
-    const image = req.file as Express.Multer.File;
-    const { isSuccess, statusCode, message, data } =
-      await feedService.createPost(
-        {
-          ...body,
-          authorId: Number(authorId),
-          published: JSON.parse(published),
-        },
-        image
-      );
-
-    if (!isSuccess) {
-      return new HttpException(statusCode, message);
-    }
-
-    return res
-      .status(statusCode)
-      .json(new HttpResponse(statusCode, message, data));
-  } catch (error) {
-    next(error);
+class FeedController {
+  constructor(private feedService: FeedService) {
+    this.getListPosts = this.getListPosts.bind(this);
+    this.createPost = this.createPost.bind(this);
+    this.getPost = this.getPost.bind(this);
+    this.updatePost = this.updatePost.bind(this);
+    this.deletePost = this.deletePost.bind(this);
+    this.likePost = this.likePost.bind(this);
+    this.sharePost = this.sharePost.bind(this);
+    this.unSharePost = this.unSharePost.bind(this);
+    this.commentPost = this.commentPost.bind(this);
+    this.deleteCommentPost = this.deleteCommentPost.bind(this);
   }
-};
 
-export const getPost = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { id } = req.params;
-    const { isSuccess, statusCode, message, data } = await feedService.getPost(
-      parseInt(id)
-    );
+  public async createPost(req: Request, res: Response, next: NextFunction) {
+    try {
+      const body = <CreatPostDto["body"]>req.body;
+      const { authorId, published } = body;
+      const image = req.file as Express.Multer.File;
+      const { isSuccess, statusCode, message, data } =
+        await this.feedService.createPost(
+          {
+            ...body,
+            authorId: Number(authorId),
+            published: JSON.parse(published),
+          },
+          image
+        );
 
-    if (!isSuccess) {
-      throw new HttpException(statusCode, message);
+      if (!isSuccess) {
+        return new HttpException(statusCode, message);
+      }
+
+      return res
+        .status(statusCode)
+        .json(new HttpResponse(isSuccess, statusCode, message, data));
+    } catch (error) {
+      next(error);
     }
-
-    return res
-      .status(statusCode)
-      .json(new HttpResponse(statusCode, message, data));
-  } catch (error) {
-    next(error);
   }
-};
 
-export const getListPosts = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    console.log(0);
-    const { isSuccess, statusCode, message, data } =
-      await feedService.getPosts();
+  public async getPost(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const { isSuccess, statusCode, message, data } =
+        await this.feedService.getPost(parseInt(id));
 
-    if (!isSuccess) {
-      throw new HttpException(statusCode, message);
+      return res
+        .status(statusCode)
+        .json(new HttpResponse(isSuccess, statusCode, message, data));
+    } catch (error) {
+      next(error);
     }
-
-    return res
-      .status(statusCode)
-      .json(new HttpResponse(statusCode, message, data));
-  } catch (error) {
-    next(error);
   }
-};
 
-export const updatePost = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { id } = req.params;
-    const body = <UpdatePostDto["body"]>req.body;
-    const { published } = body;
-    const image = req.file as Express.Multer.File;
-    const { isSuccess, statusCode, message, data } =
-      await feedService.updatePost(
-        parseInt(id),
-        {
-          ...body,
-          published: published ? JSON.parse(published) : undefined,
-        },
-        image
-      );
+  public async getListPosts(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { isSuccess, statusCode, message, data } =
+        await this.feedService.getPosts();
 
-    if (!isSuccess) {
-      throw new HttpException(statusCode, message);
+      return res
+        .status(statusCode)
+        .json(new HttpResponse(isSuccess, statusCode, message, data));
+    } catch (error) {
+      next(error);
     }
-
-    return res
-      .status(statusCode)
-      .json(new HttpResponse(statusCode, message, data));
-  } catch (error) {
-    next(error);
   }
-};
 
-export const deletePost = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { id } = req.params;
-    const { isSuccess, statusCode, message, data } =
-      await feedService.deletePost(parseInt(id));
+  public async updatePost(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const body = <UpdatePostDto["body"]>req.body;
+      const { published } = body;
+      const image = req.file as Express.Multer.File;
+      const { isSuccess, statusCode, message, data } =
+        await this.feedService.updatePost(
+          parseInt(id),
+          {
+            ...body,
+            published: published ? JSON.parse(published) : undefined,
+          },
+          image
+        );
 
-    if (!isSuccess) {
-      throw new HttpException(statusCode, message);
+      return res
+        .status(statusCode)
+        .json(new HttpResponse(isSuccess, statusCode, message, data));
+    } catch (error) {
+      next(error);
     }
-
-    return res
-      .status(statusCode)
-      .json(new HttpResponse(statusCode, message, data));
-  } catch (error) {
-    next(error);
   }
-};
 
-export const likePost = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { postId } = req.params;
-    const userId = req.userId!;
-    const { isSuccess, statusCode, message, data } = await feedService.likePost(
-      userId,
-      parseInt(postId)
-    );
+  public async deletePost(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const { isSuccess, statusCode, message, data } =
+        await this.feedService.deletePost(parseInt(id));
 
-    if (!isSuccess) {
-      throw new HttpException(statusCode, message);
+      return res
+        .status(statusCode)
+        .json(new HttpResponse(isSuccess, statusCode, message, data));
+    } catch (error) {
+      next(error);
     }
-
-    return res
-      .status(statusCode)
-      .json(new HttpResponse(statusCode, message, data));
-  } catch (error) {
-    next(error);
   }
-};
 
-export const dislikePost = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { postId } = req.params;
-    const userId = req.userId!;
-    const { isSuccess, statusCode, message, data } =
-      await feedService.dislikePost(userId, parseInt(postId));
+  public async likePost(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { postId } = req.params;
+      const userId = req.userId!;
+      const { isSuccess, statusCode, message, data } =
+        await this.feedService.likePost(userId, parseInt(postId));
 
-    if (!isSuccess) {
-      throw new HttpException(statusCode, message);
+      return res
+        .status(statusCode)
+        .json(new HttpResponse(isSuccess, statusCode, message, data));
+    } catch (error) {
+      next(error);
     }
-
-    return res
-      .status(statusCode)
-      .json(new HttpResponse(statusCode, message, data));
-  } catch (error) {
-    next(error);
   }
-};
 
-export const sharePost = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { postId } = req.params;
-    const userId = req.userId!;
-    const { isSuccess, statusCode, message, data } =
-      await feedService.sharedPost(userId, +parseInt(postId));
+  public async dislikePost(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { postId } = req.params;
+      const userId = req.userId!;
+      const { isSuccess, statusCode, message, data } =
+        await this.feedService.dislikePost(userId, parseInt(postId));
 
-    if (!isSuccess) {
-      throw new HttpException(statusCode, message);
+      return res
+        .status(statusCode)
+        .json(new HttpResponse(isSuccess, statusCode, message, data));
+    } catch (error) {
+      next(error);
     }
-
-    return res
-      .status(statusCode)
-      .json(new HttpResponse(statusCode, message, data));
-  } catch (error) {
-    next(error);
   }
-};
 
-export const unSharePost = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { postId } = req.params;
-    const userId = req.userId!;
-    const { isSuccess, statusCode, message, data } =
-      await feedService.unSharePost(userId, +parseInt(postId));
+  public async sharePost(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { postId } = req.params;
+      const userId = req.userId!;
+      const { isSuccess, statusCode, message, data } =
+        await this.feedService.sharedPost(userId, +parseInt(postId));
 
-    if (!isSuccess) {
-      throw new HttpException(statusCode, message);
+      return res
+        .status(statusCode)
+        .json(new HttpResponse(isSuccess, statusCode, message, data));
+    } catch (error) {
+      next(error);
     }
-
-    return res
-      .status(statusCode)
-      .json(new HttpResponse(statusCode, message, data));
-  } catch (error) {
-    next(error);
   }
-};
 
-export const commentPost = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { postId } = req.params;
-    const { content } = req.body;
-    const userId = req.userId!;
-    const { isSuccess, statusCode, message, data } =
-      await feedService.commentPost(userId, parseInt(postId), content);
+  public async unSharePost(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { postId } = req.params;
+      const userId = req.userId!;
+      const { isSuccess, statusCode, message, data } =
+        await this.feedService.unSharePost(userId, +parseInt(postId));
 
-    if (!isSuccess) {
-      throw new HttpException(statusCode, message);
+      return res
+        .status(statusCode)
+        .json(new HttpResponse(isSuccess, statusCode, message, data));
+    } catch (error) {
+      next(error);
     }
-
-    return res
-      .status(statusCode)
-      .json(new HttpResponse(statusCode, message, data));
-  } catch (error) {
-    next(error);
   }
-};
 
-export const deleteCommentPost = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { commentId } = req.params;
-    const userId = req.userId!;
-    const { isSuccess, statusCode, message, data } =
-      await feedService.deleteCommentPost(parseInt(commentId), userId);
+  public async commentPost(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { postId } = req.params;
+      const { content } = req.body;
+      const userId = req.userId!;
+      const { isSuccess, statusCode, message, data } =
+        await this.feedService.commentPost(userId, parseInt(postId), content);
 
-    if (!isSuccess) {
-      throw new HttpException(statusCode, message);
+      return res
+        .status(statusCode)
+        .json(new HttpResponse(isSuccess, statusCode, message, data));
+    } catch (error) {
+      next(error);
     }
-
-    return res
-      .status(statusCode)
-      .json(new HttpResponse(statusCode, message, data));
-  } catch (error) {
-    next();
   }
-};
+
+  public async deleteCommentPost(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const { postId, commentId } = req.params;
+      const userId = req.userId!;
+      const { isSuccess, statusCode, message, data } =
+        await this.feedService.deleteCommentPost(
+          parseInt(commentId),
+          userId,
+          parseInt(postId)
+        );
+
+      return res
+        .status(statusCode)
+        .json(new HttpResponse(isSuccess, statusCode, message, data));
+    } catch (error) {
+      next(error);
+    }
+  }
+}
+
+export default new FeedController(feedService);

@@ -15,6 +15,9 @@ const createCommentSchema = object({
 
 const deleteCommentSchema = object({
   params: object({
+    postId: string({
+      required_error: "PostId is required",
+    }),
     commentId: string({
       required_error: "CommentId is required",
     }),

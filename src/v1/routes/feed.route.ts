@@ -1,18 +1,5 @@
 import express from "express";
-import {
-  commentPost,
-  createPost,
-  deleteCommentPost,
-  deletePost,
-  dislikePost,
-  getListPosts,
-  getPost,
-  likePost,
-  sharePost,
-  unSharePost,
-  updatePost,
-} from "../controllers/feed.controller";
-
+import feedController from "../controllers/feed.controller";
 import { auth } from "../middlewares/auth";
 import { validationResource } from "../middlewares/validation-resource";
 import {
@@ -26,41 +13,68 @@ import { shareSchema } from "../dtos/share.dto";
 
 const feedRoute = express.Router();
 
-feedRoute.post("/", auth, validationResource(createPostSchema), createPost);
-feedRoute.put("/:id", auth, validationResource(updatePostSchema), updatePost);
-feedRoute.get("/:id", validationResource(getPostSchema), getPost);
-feedRoute.delete("/:id", auth, validationResource(getPostSchema), deletePost);
-feedRoute.get("/", getListPosts);
-feedRoute.post("/:postId/like", auth, validationResource(likeSchema), likePost);
+feedRoute.post(
+  "/",
+  auth,
+  validationResource(createPostSchema),
+  feedController.createPost
+);
+feedRoute.put(
+  "/:id",
+  auth,
+  validationResource(updatePostSchema),
+  feedController.updatePost
+);
+feedRoute.get(
+  "/:id",
+  validationResource(getPostSchema),
+  feedController.getPost
+);
+feedRoute.delete(
+  "/:id",
+  auth,
+  validationResource(getPostSchema),
+  feedController.deletePost
+);
+feedRoute.get("/", feedController.getListPosts);
+feedRoute.post(
+  "/:postId/like",
+  auth,
+  validationResource(likeSchema),
+  feedController.likePost
+);
 feedRoute.delete(
   "/:postId/dislike",
   auth,
   validationResource(likeSchema),
-  dislikePost
+  feedController.dislikePost
 );
 feedRoute.post(
   "/:postId/comment",
   auth,
   validationResource(createCommentSchema),
-  commentPost
+  feedController.commentPost
 );
 feedRoute.delete(
-  "/delete-comment/:commentId",
+  "/:postId/delete-comment/:commentId",
   auth,
   validationResource(deleteCommentSchema),
-  deleteCommentPost
+  // (req, res) => {
+  //   res.send("test");
+  // }
+  feedController.deleteCommentPost
 );
 feedRoute.post(
   "/:postId/share",
   auth,
   validationResource(shareSchema),
-  sharePost
+  feedController.sharePost
 );
 feedRoute.delete(
   "/:postId/share",
   auth,
   validationResource(shareSchema),
-  unSharePost
+  feedController.unSharePost
 );
 
 export default feedRoute;

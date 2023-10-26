@@ -11,7 +11,6 @@ import followRoute from "./v1/routes/follow.route";
 import addressRoute from "./v1/routes/address.route";
 
 export const expressApp = (app: Express) => {
-  console.log(swaggerSpec);
   app.use(cors({ origin: "*" }));
   app.use(express.json());
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));

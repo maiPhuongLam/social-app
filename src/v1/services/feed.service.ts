@@ -5,17 +5,15 @@ import { LikeRepository } from "../repositories/like.repository";
 import { PostRepository } from "../repositories/post.repository";
 import { SharedPostRepository } from "../repositories/sharedPost.repository";
 import { formateData } from "../../utils/formate-data";
-import { CacheService } from "./cache.service";
 import cloudinary from "cloudinary";
 import { unlinkSync } from "fs";
-
+import client from "../../redis";
 export class FeedService {
   constructor(
     private readonly postRepository: PostRepository,
     private readonly likeRepository: LikeRepository,
     private readonly commentRepository: CommentRepository,
-    private readonly sharedPostRepository: SharedPostRepository,
-    private readonly cacheService: CacheService
+    private readonly sharedPostRepository: SharedPostRepository
   ) {
     cloudinary.v2.config({
       cloud_name: config.cloudinary.cloud_name,
@@ -25,46 +23,55 @@ export class FeedService {
     });
   }
 
-  async getPost(id: number) {
-    const cache = await this.cacheService.getData(`posts:${id}`);
+  public async getPost(id: number) {
+    const cacheData = await client.lRange("posts", 0, -1);
 
-    if (cache.data) {
-      console.log("Cache data success");
-      return cache;
+    // Close the Redis connection when done (optional)
+    if (cacheData) {
+      console.log("Caching success");
+      const posts = cacheData.map((data) => JSON.parse(data));
+      const post = posts.find((post) => post.id === id);
+      if (post) {
+        return formateData(true, 200, "Fetch posts success", post);
+      }
     }
 
-    console.log("Miss cache");
+    console.log("Cache empty");
+
     const post = await this.postRepository.findPostById(id);
 
     if (!post) {
       return formateData(false, 404, "Post not found", null);
     }
 
-    await this.cacheService.setData(`posts:${id}`, 3600, post);
+    await client.lPush("posts", JSON.stringify(post));
 
     return formateData(true, 200, "Fetch post success", post);
   }
 
-  async getPosts() {
-    const cache = await this.cacheService.getData("posts");
+  public async getPosts() {
+    const cacheData = await client.lRange("posts", 0, -1);
 
-    if (cache.data) {
-      console.log("Cache data success");
-      return cache;
+    if (cacheData.length > 0) {
+      console.log("Caching success");
+      const posts = cacheData.map((data) => JSON.parse(data));
+      return formateData(true, 200, "Fetch posts success", posts);
     }
 
+    console.log("Cache empty");
     const posts = await this.postRepository.findPosts();
 
     if (!posts.length) {
       return formateData(false, 404, "Posts not found", null);
     }
+    for (let i = 0; i < posts.length; i++) {
+      await client.lPush("posts", JSON.stringify(posts[i]));
+    }
 
-    await this.cacheService.setData("posts", 3600, posts);
-
-    return formateData(true, 200, "Fetch post success", posts);
+    return formateData(true, 200, "Fetch posts success", posts);
   }
 
-  async createPost(input: CreatePostInput, file: Express.Multer.File) {
+  public async createPost(input: CreatePostInput, file: Express.Multer.File) {
     const { content, link, location } = input;
 
     if (file || content || link || location) {
@@ -90,9 +97,7 @@ export class FeedService {
           imagePublicId: resCloudinary.public_id,
         });
 
-        const posts = await this.postRepository.findPosts();
-        await this.cacheService.setData(`posts`, 3600, posts);
-
+        await client.lPush("posts", JSON.stringify(post));
         return formateData(true, 201, "Create post success", post);
       }
       const post = await this.postRepository.createPost(input);
@@ -101,8 +106,7 @@ export class FeedService {
         return formateData(false, 400, "Create post fail", null);
       }
 
-      const posts = await this.postRepository.findPosts();
-      await this.cacheService.setData(`posts`, 3600, posts);
+      await client.lPush("posts", JSON.stringify(post));
 
       return formateData(true, 201, "Create post success", post);
     } else {
@@ -110,7 +114,7 @@ export class FeedService {
     }
   }
 
-  async updatePost(
+  public async updatePost(
     id: number,
     input: UpdatePostInput,
     image: Express.Multer.File
@@ -153,18 +157,21 @@ export class FeedService {
           image: resCloudinary.secure_url,
           imagePublicId: resCloudinary.public_id,
         });
-
-        const posts = await this.postRepository.findPosts();
-        this.cacheService.setData(`posts`, 3600, posts);
-        this.cacheService.setData(`posts:${post?.id}`, 3600, post);
+        const cacheData = await client.lRange("posts", 0, -1);
+        const index = cacheData.findIndex(
+          (data) => parseInt(JSON.parse(data).id) === post?.id
+        );
+        await client.lSet("posts", index, JSON.stringify(post));
 
         return formateData(true, 200, "Update post success", post);
       }
 
       const post = await this.postRepository.updatePost(id, input);
-      const posts = await this.postRepository.findPosts();
-      this.cacheService.setData(`posts`, 3600, posts);
-      this.cacheService.setData(`posts:${post?.id}`, 3600, post);
+      const cacheData = await client.lRange("posts", 0, -1);
+      const index = cacheData.findIndex(
+        (data) => parseInt(JSON.parse(data).id) === post?.id
+      );
+      await client.lSet("posts", index, JSON.stringify(post));
 
       return formateData(true, 200, "Update post success", post);
     } else {
@@ -172,7 +179,7 @@ export class FeedService {
     }
   }
 
-  async deletePost(id: number) {
+  public async deletePost(id: number) {
     const post = await this.postRepository.findPostById(id);
 
     if (!post) {
@@ -180,14 +187,20 @@ export class FeedService {
     }
 
     const data = await this.postRepository.deletePost(id);
-    await this.cacheService.deleteData(`posts:${id}`);
-    const posts = await this.postRepository.findPosts();
-    await this.cacheService.setData(`posts`, 3600, posts);
-
+    const cacheData = await client.lRange("posts", 0, -1);
+    const index = cacheData.findIndex(
+      (data) => parseInt(JSON.parse(data).id) === id
+    );
+    const postToDelete = await client.lIndex("posts", index);
+    await client.lRem("posts", 1, postToDelete!);
     return formateData(true, 200, "Delte post success", data);
   }
 
-  async likePost(userId: number, postId: number) {
+  public async likePost(userId: number, postId: number) {
+    const postExist = await this.postRepository.findPostById(postId);
+    if (!postExist) {
+      return formateData(false, 403, "Action forbiden", null);
+    }
     const exist = await this.likeRepository.getLike(userId, postId);
 
     if (exist) {
@@ -195,15 +208,23 @@ export class FeedService {
     }
 
     const like = await this.likeRepository.createLike(userId, postId);
-    const posts = await this.postRepository.findPosts();
+    const cacheData = await client.lRange("posts", 0, -1);
+    const index = cacheData.findIndex(
+      (data) => parseInt(JSON.parse(data).id) === postId
+    );
     const post = await this.postRepository.findPostById(postId);
-    await this.cacheService.setData(`posts`, 3600, posts);
-    await this.cacheService.setData(`posts:${postId}`, 3600, post);
+    await client.lSet("posts", index, JSON.stringify(post));
 
     return formateData(true, 201, "Like post success", like);
   }
 
-  async dislikePost(userId: number, postId: number) {
+  public async dislikePost(userId: number, postId: number) {
+    const postExist = await this.postRepository.findPostById(postId);
+
+    if (!postExist) {
+      return formateData(false, 403, "Action forbiden", null);
+    }
+
     const exist = await this.likeRepository.getLike(userId, postId);
 
     if (!exist) {
@@ -211,50 +232,74 @@ export class FeedService {
     }
 
     const like = await this.likeRepository.deleteLike(userId, postId);
-    const posts = await this.postRepository.findPosts();
+    const cacheData = await client.lRange("posts", 0, -1);
+    const index = cacheData.findIndex(
+      (data) => parseInt(JSON.parse(data).id) === postId
+    );
     const post = await this.postRepository.findPostById(postId);
-    await this.cacheService.setData(`posts`, 3600, posts);
-    await this.cacheService.setData(`posts:${postId}`, 3600, post);
+    await client.lSet("posts", index, JSON.stringify(post));
 
     return formateData(true, 201, "Dislike post success", like);
   }
 
-  async commentPost(userId: number, postId: number, content: string) {
+  public async commentPost(userId: number, postId: number, content: string) {
+    const postExist = await this.postRepository.findPostById(postId);
+
+    if (!postExist) {
+      return formateData(false, 403, "Action forbiden", null);
+    }
+
     const comment = await this.commentRepository.createComment(
       userId,
       postId,
       content
     );
-    const posts = await this.postRepository.findPosts();
+    const cacheData = await client.lRange("posts", 0, -1);
+    const index = cacheData.findIndex(
+      (data) => parseInt(JSON.parse(data).id) === postId
+    );
     const post = await this.postRepository.findPostById(postId);
-    await this.cacheService.setData(`posts`, 3600, posts);
-    await this.cacheService.setData(`posts:${postId}`, 3600, post);
+    await client.lSet("posts", index, JSON.stringify(post));
 
     return formateData(true, 201, "Comment post success", comment);
   }
 
-  async deleteCommentPost(id: number, userId: number) {
-    const comment = await this.commentRepository.getComment(id);
-
+  public async deleteCommentPost(
+    commentId: number,
+    userId: number,
+    postId: number
+  ) {
+    const postExist = await this.postRepository.findPostById(postId);
+    if (!postExist) {
+      return formateData(false, 403, "Action forbiden", null);
+    }
+    console.log(postExist);
+    const comment = await this.commentRepository.getComment(commentId);
     if (!comment) {
       return formateData(false, 404, "Action like is forbidden", null);
     }
-    console.log(comment.userId);
-    console.log(userId);
+    console.log(1);
     if (comment.userId !== userId) {
       return formateData(false, 401, "Unauthorized", null);
     }
 
-    const data = await this.commentRepository.deleteComment(id);
-    const posts = await this.postRepository.findPosts();
-    const post = await this.postRepository.findPostById(id);
-    await this.cacheService.setData(`posts`, 3600, posts);
-    await this.cacheService.setData(`posts:${id}`, 3600, post);
+    const data = await this.commentRepository.deleteComment(commentId);
+    // const posts = await this.postRepository.findPosts();
+    // const post = await this.postRepository.findPostById(id);
+    // await this.cacheService.setData(`posts`, 3600, posts);
+    // await this.cacheService.setData(`posts:${id}`, 3600, post);
+
+    const cacheData = await client.lRange("posts", 0, -1);
+    const index = cacheData.findIndex(
+      (data) => parseInt(JSON.parse(data).id) === comment.postId
+    );
+    const post = await this.postRepository.findPostById(comment.postId);
+    await client.lSet("posts", index, JSON.stringify(post));
 
     return formateData(true, 201, "Delete post success", data);
   }
 
-  async sharedPost(userId: number, postId: number) {
+  public async sharedPost(userId: number, postId: number) {
     const exist = await this.sharedPostRepository.getSharedPost(userId, postId);
 
     if (exist) {
@@ -275,15 +320,15 @@ export class FeedService {
     //   content: sharedPost.post.content,
     //   published: true
     // })
-    const posts = await this.postRepository.findPosts();
-    const post = await this.postRepository.findPostById(postId);
-    await this.cacheService.setData(`posts`, 3600, posts);
-    await this.cacheService.setData(`posts:${postId}`, 3600, post);
+    // const posts = await this.postRepository.findPosts();
+    // const post = await this.postRepository.findPostById(postId);
+    // await this.cacheService.setData(`posts`, 3600, posts);
+    // await this.cacheService.setData(`posts:${postId}`, 3600, post);
 
     return formateData(true, 201, "Shared post success", sharedPost);
   }
 
-  async unSharePost(userId: number, postId: number) {
+  public async unSharePost(userId: number, postId: number) {
     const exist = await this.sharedPostRepository.getSharedPost(userId, postId);
 
     if (!exist) {
@@ -295,11 +340,19 @@ export class FeedService {
       postId
     );
 
-    const posts = await this.postRepository.findPosts();
-    const post = await this.postRepository.findPostById(postId);
-    await this.cacheService.setData(`posts`, 3600, posts);
-    await this.cacheService.setData(`posts:${postId}`, 3600, post);
+    // const posts = await this.postRepository.findPosts();
+    // const post = await this.postRepository.findPostById(postId);
+    // await this.cacheService.setData(`posts`, 3600, posts);
+    // await this.cacheService.setData(`posts:${postId}`, 3600, post);
 
     return formateData(true, 201, "Unshared post success", data);
   }
 }
+
+const feedService = new FeedService(
+  new PostRepository(),
+  new LikeRepository(),
+  new CommentRepository(),
+  new SharedPostRepository()
+);
+export default feedService;
