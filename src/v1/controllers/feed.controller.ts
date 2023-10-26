@@ -1,7 +1,6 @@
 import { NextFunction, Response, Request } from "express";
 import feedService, { FeedService } from "../services/feed.service";
 import HttpResponse from "../../HttpResponse";
-import HttpException from "../../HttpException";
 import { CreatPostDto, UpdatePostDto } from "../dtos/post.dto";
 
 class FeedController {
@@ -12,6 +11,7 @@ class FeedController {
     this.updatePost = this.updatePost.bind(this);
     this.deletePost = this.deletePost.bind(this);
     this.likePost = this.likePost.bind(this);
+    this.dislikePost = this.dislikePost.bind(this);
     this.sharePost = this.sharePost.bind(this);
     this.unSharePost = this.unSharePost.bind(this);
     this.commentPost = this.commentPost.bind(this);
@@ -32,10 +32,6 @@ class FeedController {
           },
           image
         );
-
-      if (!isSuccess) {
-        return new HttpException(statusCode, message);
-      }
 
       return res
         .status(statusCode)

@@ -1,7 +1,6 @@
 import { NextFunction, Response, Request } from "express";
 import profileService, { ProfileService } from "../services/profile.service";
 import HttpResponse from "../../HttpResponse";
-import HttpException from "../../HttpException";
 import { UpdateProfileDto } from "../dtos/profile.dto";
 
 class ProfileController {
@@ -46,7 +45,9 @@ class ProfileController {
       const file = req.file as Express.Multer.File;
       console.log(file);
       if (!file) {
-        throw new HttpException(400, "file not found");
+        return res
+          .status(400)
+          .json(new HttpResponse(false, 400, "File not found", null));
       }
 
       const { isSuccess, statusCode, message, data } =

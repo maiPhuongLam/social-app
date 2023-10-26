@@ -6,7 +6,6 @@ import {
 } from "../../custom-type";
 import { UserReposotory } from "../repositories/user.repository";
 import { hashPassword, validatePassword } from "../../utils/password";
-import HttpException from "../../HttpException";
 import { formateData } from "../../utils/formate-data";
 import { generateToken, validateToken } from "../../utils/auth-token";
 import { sendEmail } from "../../utils/mail-handler";

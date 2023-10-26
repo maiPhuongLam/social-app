@@ -2,7 +2,6 @@ import { NextFunction, Response, Request } from "express";
 import authService, { AuthService } from "../services/auth.service";
 import { UserTypes } from "../../custom-type";
 import HttpResponse from "../../HttpResponse";
-import HttpException from "../../HttpException";
 import {
   CheckOtpDto,
   LoginDto,
@@ -73,7 +72,9 @@ class AuthController {
       const token = <string>req.cookies._auth_token_;
 
       if (!token) {
-        throw new HttpException(401, "Unauthorized");
+        return res
+          .status(401)
+          .json(new HttpResponse(false, 401, "Unauthorized", null));
       }
 
       const { isSuccess, statusCode, message, data } =

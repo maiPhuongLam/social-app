@@ -1,7 +1,6 @@
 import { NextFunction, Response, Request } from "express";
 import { UserReposotory } from "../repositories/user.repository";
 import HttpResponse from "../../HttpResponse";
-import HttpException from "../../HttpException";
 import addressService, { AddressService } from "../services/address.service";
 import { CreateAddressDto, UpdateAddressDto } from "../dtos/address.dto";
 

@@ -1,6 +1,5 @@
 import { NextFunction, Response, Request } from "express";
 import HttpResponse from "../../HttpResponse";
-import HttpException from "../../HttpException";
 import followService, { FollowService } from "../services/follow.service";
 
 class FollowController {
